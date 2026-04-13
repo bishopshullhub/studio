@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from 'react';
@@ -11,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle2, Wifi, Coffee, Users, Car, MapPin, User, Calendar, ClipboardCheck, ArrowRight, ArrowLeft, Info, Smile, CheckSquare, AlertTriangle } from 'lucide-react';
+import { CheckCircle2, Wifi, Coffee, Users, Car, MapPin, User, Calendar, ClipboardCheck, ArrowRight, ArrowLeft, Info, AlertTriangle, CheckSquare } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
@@ -200,7 +199,7 @@ export default function HirePage() {
                             </div>
                             <p className="text-muted-foreground leading-relaxed">
                               We can have bouncy castles inside and outside 👍 please see our guidance in the 
-                              <Link href="/faq" className="text-primary font-semibold hover:underline px-1">FAQ section</Link> 
+                              <Link href="/bouncy-castles" className="text-primary font-semibold hover:underline px-1">Bouncy Castle guidance</Link> 
                               to help your choice.
                             </p>
                           </div>
