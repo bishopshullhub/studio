@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -190,6 +189,23 @@ ${submittedData.additionalRequirements}
 `.trim();
   };
 
+  const handleCopy = async () => {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(getSummaryText());
+        toast({ title: "Copied", description: "Enquiry text copied to clipboard." });
+      } else {
+        throw new Error("Clipboard API unavailable");
+      }
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        title: "Copy Failed",
+        description: "Please manually select and copy the text below.",
+      });
+    }
+  };
+
   if (isSubmitted) {
     return (
       <div className="container mx-auto px-4 py-20 max-w-3xl">
@@ -204,6 +220,7 @@ ${submittedData.additionalRequirements}
           <CardContent className="p-8 space-y-6">
             <div className="space-y-4">
               <h2 className="text-xl font-bold text-primary border-b pb-2">Your Enquiry Details</h2>
+              <p className="text-sm text-muted-foreground">This information has been sent to our bookings secretary at <strong>bishopshullhub@gmail.com</strong>.</p>
               <pre className="bg-muted p-6 rounded-xl text-sm font-mono overflow-auto whitespace-pre-wrap border border-border">
                 {getSummaryText()}
               </pre>
@@ -218,10 +235,7 @@ ${submittedData.additionalRequirements}
 
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
               <Button 
-                onClick={() => {
-                  navigator.clipboard.writeText(getSummaryText());
-                  toast({ title: "Copied", description: "Enquiry text copied to clipboard." });
-                }} 
+                onClick={handleCopy} 
                 className="flex-1"
                 variant="outline"
               >
@@ -239,7 +253,6 @@ ${submittedData.additionalRequirements}
 
   return (
     <div className="pb-20">
-      {/* Header */}
       <section className="bg-primary text-primary-foreground py-20">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl space-y-6">
@@ -253,7 +266,6 @@ ${submittedData.additionalRequirements}
       </section>
 
       <div className="container mx-auto px-4 -mt-10 space-y-12">
-        {/* Hire Summary - Top Horizontal Bar */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             { label: "Hourly Rate", value: "£18.00", sub: "per hour" },
@@ -271,11 +283,8 @@ ${submittedData.additionalRequirements}
           ))}
         </div>
 
-        {/* Multi-step Form Container - Full Width */}
         <section id="booking-form" className="scroll-mt-24">
           <div className="bg-white rounded-3xl p-8 shadow-xl border border-border">
-            
-            {/* Progress Indicator */}
             <div className="mb-10 space-y-4">
               <div className="flex justify-between items-end mb-2">
                 <div>
@@ -291,8 +300,6 @@ ${submittedData.additionalRequirements}
                 <span className="text-sm font-medium text-muted-foreground">{Math.round(progress)}% Complete</span>
               </div>
               <Progress value={progress} className="h-2" />
-              
-              {/* Step Icons (Desktop) */}
               <div className="hidden md:flex justify-between mt-6">
                 {[
                   { id: 1, label: "Availability", icon: Calendar },
@@ -319,8 +326,6 @@ ${submittedData.additionalRequirements}
 
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                
-                {/* STEP 1: PRICING & AVAILABILITY */}
                 {step === 1 && (
                   <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
                     <div className="space-y-4">
@@ -339,7 +344,6 @@ ${submittedData.additionalRequirements}
                   </div>
                 )}
 
-                {/* STEP 2: VENUE POLICIES */}
                 {step === 2 && (
                   <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
                     <div className="space-y-6">
@@ -399,7 +403,6 @@ ${submittedData.additionalRequirements}
                   </div>
                 )}
 
-                {/* STEP 3: CONTACT */}
                 {step === 3 && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-right-4 duration-500">
                     <FormField
@@ -494,7 +497,6 @@ ${submittedData.additionalRequirements}
                   </div>
                 )}
 
-                {/* STEP 4: EVENT DETAILS */}
                 {step === 4 && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-right-4 duration-500">
                     <div className="md:col-span-2 space-y-4">
@@ -572,7 +574,6 @@ ${submittedData.additionalRequirements}
                   </div>
                 )}
 
-                {/* STEP 5: REQUIREMENTS */}
                 {step === 5 && (
                   <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
                     <FormField
@@ -626,7 +627,6 @@ ${submittedData.additionalRequirements}
                   </div>
                 )}
 
-                {/* Navigation Buttons */}
                 <div className="flex justify-between pt-6 border-t border-muted">
                   <Button
                     type="button"
@@ -653,7 +653,6 @@ ${submittedData.additionalRequirements}
           </div>
         </section>
 
-        {/* Bottom Section: Checklist and Facility Overview */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8">
             <section className="space-y-6">
@@ -677,7 +676,6 @@ ${submittedData.additionalRequirements}
               </div>
             </section>
           </div>
-
           <div className="space-y-8">
             <Card className="border-none shadow-lg bg-white overflow-hidden">
               <CardHeader className="bg-accent/10 border-b border-accent/20">
@@ -697,19 +695,6 @@ ${submittedData.additionalRequirements}
                       <span className="text-sm">{item}</span>
                     </div>
                   ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-none shadow-lg bg-primary text-primary-foreground overflow-hidden">
-              <CardContent className="p-8 space-y-6">
-                <h3 className="text-2xl font-headline font-bold">Need Help?</h3>
-                <p className="opacity-90">
-                  Our volunteer bookings secretary is here to help with your event planning.
-                </p>
-                <div className="pt-4 border-t border-white/20">
-                  <p className="text-sm font-bold uppercase tracking-widest opacity-70 font-headline">Direct Email</p>
-                  <p className="text-xl font-bold">bhhubbookings@gmail.com</p>
                 </div>
               </CardContent>
             </Card>
