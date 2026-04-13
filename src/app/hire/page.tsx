@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from 'react';
@@ -378,7 +377,7 @@ export default function HirePage() {
                     </div>
                   ))}
                 </div>
-              </div>
+              </CardContent>
             </Card>
 
             <Card className="border-none shadow-lg bg-primary text-primary-foreground overflow-hidden">
