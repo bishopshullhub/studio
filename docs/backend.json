@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "WeeklySchedule": {
@@ -78,9 +79,21 @@
           "type": "string",
           "description": "The phone number of the enquirer."
         },
+        "postalAddress": {
+          "type": "string",
+          "description": "The full postal address of the enquirer."
+        },
+        "postcode": {
+          "type": "string",
+          "description": "The postcode of the enquirer."
+        },
+        "preferredContact": {
+          "type": "string",
+          "description": "How the user prefers to be contacted (Email or Phone)."
+        },
         "dateRequired": {
           "type": "string",
-          "description": "The specific date or range of dates requested for the booking.",
+          "description": "The specific date requested for the booking.",
           "format": "date"
         },
         "startTime": {
@@ -93,7 +106,7 @@
         },
         "typeOfEvent": {
           "type": "string",
-          "description": "A description of the type of event or purpose of the booking (e.g., 'Birthday Party', 'Community Meeting')."
+          "description": "A description of the type of event or purpose of the booking."
         },
         "estimatedAttendance": {
           "type": "number",
@@ -110,7 +123,8 @@
         },
         "status": {
           "type": "string",
-          "description": "The current processing status of the booking enquiry (e.g., 'Pending', 'Reviewed', 'Confirmed', 'Rejected')."
+          "description": "The current processing status of the booking enquiry.",
+          "enum": ["Pending", "Reviewed", "Confirmed", "Rejected"]
         }
       },
       "required": [
@@ -136,28 +150,28 @@
         },
         "title": {
           "type": "string",
-          "description": "The main title of the community initiative (e.g., 'Join the 100 Club', 'Sensory Trail')."
+          "description": "The main title of the community initiative."
         },
         "slug": {
           "type": "string",
-          "description": "A URL-friendly identifier for the initiative, used for navigation (e.g., 'join-100-club')."
+          "description": "A URL-friendly identifier for the initiative."
         },
         "description": {
           "type": "string",
-          "description": "The full explanatory text detailing the purpose and information about the initiative."
+          "description": "The full explanatory text detailing the purpose."
         },
         "callToActionText": {
           "type": "string",
-          "description": "The text displayed on a call-to-action button or link related to the initiative (e.g., 'Learn More', 'Donate Now')."
+          "description": "The text displayed on a call-to-action button."
         },
         "callToActionLink": {
           "type": "string",
-          "description": "The URL or internal path associated with the call-to-action (e.g., an external payment portal, an internal form).",
+          "description": "The URL or internal path associated with the call-to-action.",
           "format": "uri"
         },
         "displayOrder": {
           "type": "number",
-          "description": "An integer defining the display order of the initiative on the website, allowing for custom sorting."
+          "description": "Sorting order."
         }
       },
       "required": [
@@ -173,36 +187,29 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "GalleryImage",
       "type": "object",
-      "description": "Stores metadata for images used in galleries, such as the 'Community Garden Gallery', referencing their location in cloud storage.",
+      "description": "Stores metadata for images used in galleries.",
       "properties": {
         "id": {
-          "type": "string",
-          "description": "Unique identifier for the GalleryImage entity."
+          "type": "string"
         },
         "storagePath": {
-          "type": "string",
-          "description": "The path or URL to the image file stored in Firebase Cloud Storage (e.g., 'community-garden/summer_view.webp')."
+          "type": "string"
         },
         "altText": {
-          "type": "string",
-          "description": "Alternative text for the image, crucial for accessibility and SEO."
+          "type": "string"
         },
         "caption": {
-          "type": "string",
-          "description": "A short caption or description to be displayed with the image."
+          "type": "string"
         },
         "category": {
-          "type": "string",
-          "description": "A category to group related images, allowing for multiple galleries (e.g., 'Community Garden', 'Hall Interior')."
+          "type": "string"
         },
         "uploadDate": {
           "type": "string",
-          "description": "The date and time when the image was uploaded.",
           "format": "date-time"
         },
         "displayOrder": {
-          "type": "number",
-          "description": "An integer defining the display order of the image within its category or gallery."
+          "type": "number"
         }
       },
       "required": [
@@ -217,32 +224,26 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "PageContent",
       "type": "object",
-      "description": "Manages static content for various pages or sections of the website, enabling updates without code changes.",
+      "description": "Manages static content for various pages or sections of the website.",
       "properties": {
         "id": {
-          "type": "string",
-          "description": "Unique identifier for the PageContent entity."
+          "type": "string"
         },
         "slug": {
-          "type": "string",
-          "description": "A URL-friendly identifier for the content page or section (e.g., 'hire-prices', 'privacy-statement')."
+          "type": "string"
         },
         "title": {
-          "type": "string",
-          "description": "The main title of the content page or section (e.g., 'Hire Prices', 'Privacy Statement')."
+          "type": "string"
         },
         "content": {
-          "type": "string",
-          "description": "The main body text or rich HTML content for the page or section."
+          "type": "string"
         },
         "lastUpdated": {
           "type": "string",
-          "description": "The timestamp indicating when the content was last updated.",
           "format": "date-time"
         },
         "category": {
-          "type": "string",
-          "description": "A category to group related content, such as 'Legal', 'Hire Information', 'About Us'."
+          "type": "string"
         }
       },
       "required": [
@@ -269,7 +270,7 @@
           "schema": {
             "$ref": "#/backend/entities/WeeklySchedule"
           },
-          "description": "Stores individual weekly activity schedule entries. Documents are publicly readable to display the timetable and are admin-editable. No denormalized authorization fields are required as access is public read and role-based admin write (via /admins collection)."
+          "description": "Stores individual weekly activity schedule entries."
         }
       },
       {
@@ -279,13 +280,7 @@
           "schema": {
             "$ref": "#/backend/entities/BookingEnquiry"
           },
-          "description": "Holds booking enquiry submissions from the 'Hire the Hub' form. Documents are created by any user (anonymous or authenticated) and are readable only by administrators. Includes a 'status' field for explicit state management. No denormalized authorization fields are required as submission is public and read is role-based admin (via /admins collection).",
-          "params": [
-            {
-              "name": "enquiryId",
-              "description": "The unique identifier for a specific booking enquiry."
-            }
-          ]
+          "description": "Holds booking enquiry submissions."
         }
       },
       {
@@ -295,13 +290,7 @@
           "schema": {
             "$ref": "#/backend/entities/CommunityInitiative"
           },
-          "description": "Contains details for various community projects and initiatives. Documents are publicly readable for display on the website and are admin-editable. No denormalized authorization fields are required as access is public read and role-based admin write (via /admins collection).",
-          "params": [
-            {
-              "name": "initiativeId",
-              "description": "The unique identifier for a specific community initiative."
-            }
-          ]
+          "description": "Contains details for various community projects."
         }
       },
       {
@@ -311,13 +300,7 @@
           "schema": {
             "$ref": "#/backend/entities/GalleryImage"
           },
-          "description": "Stores metadata for images displayed in galleries (e.g., Community Garden Gallery). Documents are publicly readable and are admin-editable. No denormalized authorization fields are required as access is public read and role-based admin write (via /admins collection).",
-          "params": [
-            {
-              "name": "imageId",
-              "description": "The unique identifier for a specific gallery image."
-            }
-          ]
+          "description": "Stores metadata for images displayed in galleries."
         }
       },
       {
@@ -327,13 +310,7 @@
           "schema": {
             "$ref": "#/backend/entities/PageContent"
           },
-          "description": "Manages static content for various pages or sections of the website. Documents are publicly readable and are admin-editable. No denormalized authorization fields are required as access is public read and role-based admin write (via /admins collection).",
-          "params": [
-            {
-              "name": "contentId",
-              "description": "The unique identifier for a specific piece of page content."
-            }
-          ]
+          "description": "Manages static content for various pages."
         }
       },
       {
@@ -341,18 +318,15 @@
         "definition": {
           "entityName": "admin",
           "schema": {
-            "$ref": "#/backend/entities/User"
-          },
-          "description": "A collection storing the user IDs (UIDs) of authenticated administrators. The mere existence of a document in this collection with a user's UID as its ID grants administrative privileges across the application. This collection facilitates DBAC (Database Access Control) without relying on custom claims or hierarchical reads for authorization in other collections.",
-          "params": [
-            {
-              "name": "adminId",
-              "description": "The Firebase Authentication User ID (UID) of an administrator."
+            "title": "User",
+            "type": "object",
+            "properties": {
+              "uid": { "type": "string" }
             }
-          ]
+          },
+          "description": "Admin registry."
         }
       }
-    ],
-    "reasoning": "The Firestore structure prioritizes clarity, security, and scalability by adhering to the core design principles. Each primary entity is mapped to a top-level collection, ensuring structural segregation where all documents within a collection share a homogeneous security posture. \n\nAuthorization Independence is achieved primarily by having public-facing collections (`weekly_schedules`, `community_initiatives`, `gallery_images`, `page_contents`) that are universally readable, removing any need for hierarchical authorization lookups. For administrative write access to these collections, and read/write access to `booking_enquiries`, a separate top-level `/admins/{adminId}` collection is used for role-based access control. The existence of `request.auth.uid` in this collection will grant admin privileges, avoiding `get()` calls on parent documents for authorization decisions, thus maintaining authorization independence and supporting atomic operations. For example, an admin can update a `WeeklySchedule` document without needing to fetch any other document to verify their permissions.\n\nQAPs (Query as a Policy) are supported through this design. For public collections, security rules will simply allow reads (`if true`), meaning any query will return all matching documents without implicitly filtering based on permissions. For the `booking_enquiries` collection, only authenticated administrators (verified via the `/admins/{adminId}` collection) will have read access. A query for `booking_enquiries` by an admin will therefore retrieve all documents, as intended by the administrator's role, without filtering. Non-admins will be explicitly denied read access, preventing unauthorized queries from returning partial or no data unexpectedly. The `BookingEnquiry` entity itself is designed to be self-contained, including all necessary submission details and a `status` field for explicit state modeling, further simplifying rules and ensuring data integrity."
+    ]
   }
 }

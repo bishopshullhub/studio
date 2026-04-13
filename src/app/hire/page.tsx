@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -10,12 +11,14 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle2, Wifi, Coffee, Users, Car, MapPin, User, Calendar, ClipboardCheck, ArrowRight, ArrowLeft, Info, AlertTriangle, CheckSquare, Mail, Phone as PhoneIcon, Clock } from 'lucide-react';
+import { CheckCircle2, Wifi, Coffee, Users, Car, MapPin, User, Calendar, ClipboardCheck, ArrowRight, ArrowLeft, Info, AlertTriangle, CheckSquare, Mail, Phone as PhoneIcon, Clock, Check } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import { useFirebase, addDocumentNonBlocking } from '@/firebase';
+import { collection } from 'firebase/firestore';
 
 const formSchema = z.object({
   // Step 2: Policy Acknowledgement
@@ -60,12 +63,14 @@ type FormValues = z.infer<typeof formSchema>;
 
 export default function HirePage() {
   const { toast } = useToast();
+  const { firestore } = useFirebase();
   const [step, setStep] = useState(1);
   const [minDateStr, setMinDateStr] = useState("");
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submittedData, setSubmittedData] = useState<any>(null);
   const totalSteps = 5;
 
   useEffect(() => {
-    // Set minimum date to 14 days from now to prevent hydration mismatch
     const date = new Date();
     date.setDate(date.getDate() + 14);
     setMinDateStr(date.toISOString().split('T')[0]);
@@ -126,16 +131,111 @@ export default function HirePage() {
   const prevStep = () => setStep(prev => Math.max(prev - 1, 1));
 
   function onSubmit(values: FormValues) {
-    console.log(values);
+    const enquiryId = Math.random().toString(36).substring(7);
+    const enquiryData = {
+      id: enquiryId,
+      name: values.name,
+      emailAddress: values.email,
+      phoneNumber: values.phone,
+      postalAddress: values.address,
+      postcode: values.postcode,
+      preferredContact: values.preferredContact,
+      dateRequired: values.date,
+      startTime: values.startTime,
+      endTime: values.endTime,
+      typeOfEvent: values.typeOfEvent,
+      estimatedAttendance: parseInt(values.attendance),
+      additionalRequirements: values.requirements || "None provided",
+      submissionDateTime: new Date().toISOString(),
+      status: 'Pending'
+    };
+
+    const colRef = collection(firestore, 'booking_enquiries');
+    addDocumentNonBlocking(colRef, enquiryData);
+
+    setSubmittedData(enquiryData);
+    setIsSubmitted(true);
+    
     toast({
       title: "Enquiry Sent",
       description: "We've received your booking enquiry and will be in touch shortly.",
     });
-    form.reset();
-    setStep(1);
   }
 
   const progress = (step / totalSteps) * 100;
+
+  const getSummaryText = () => {
+    if (!submittedData) return "";
+    return `
+BOOKING ENQUIRY SUMMARY
+------------------------
+Enquiry ID: ${submittedData.id}
+Submitted: ${new Date(submittedData.submissionDateTime).toLocaleString()}
+
+CONTACT INFORMATION:
+Name: ${submittedData.name}
+Email: ${submittedData.emailAddress}
+Phone: ${submittedData.phoneNumber}
+Address: ${submittedData.postalAddress}, ${submittedData.postcode}
+Preferred Contact: ${submittedData.preferredContact}
+
+EVENT DETAILS:
+Date: ${submittedData.dateRequired}
+Times: ${submittedData.startTime} - ${submittedData.endTime}
+Type: ${submittedData.typeOfEvent}
+Attendance: ${submittedData.estimatedAttendance}
+
+REQUIREMENTS:
+${submittedData.additionalRequirements}
+`.trim();
+  };
+
+  if (isSubmitted) {
+    return (
+      <div className="container mx-auto px-4 py-20 max-w-3xl">
+        <Card className="border-none shadow-2xl overflow-hidden">
+          <div className="bg-primary p-8 text-center text-primary-foreground">
+            <div className="mx-auto w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mb-4">
+              <Check className="h-8 w-8" />
+            </div>
+            <h1 className="text-3xl font-headline font-bold">Enquiry Received!</h1>
+            <p className="opacity-90 mt-2">Thank you for contacting the Bishops Hull Hub.</p>
+          </div>
+          <CardContent className="p-8 space-y-6">
+            <div className="space-y-4">
+              <h2 className="text-xl font-bold text-primary border-b pb-2">Your Enquiry Details</h2>
+              <pre className="bg-muted p-6 rounded-xl text-sm font-mono overflow-auto whitespace-pre-wrap border border-border">
+                {getSummaryText()}
+              </pre>
+            </div>
+            
+            <div className="bg-accent/10 p-4 rounded-xl flex gap-3 items-start">
+              <Info className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+              <p className="text-sm text-muted-foreground italic">
+                A copy of this enquiry has been saved to our database. Our volunteer bookings secretary will review it and contact you via your preferred method shortly.
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-4 pt-4">
+              <Button 
+                onClick={() => {
+                  navigator.clipboard.writeText(getSummaryText());
+                  toast({ title: "Copied", description: "Enquiry text copied to clipboard." });
+                }} 
+                className="flex-1"
+                variant="outline"
+              >
+                Copy Enquiry Text
+              </Button>
+              <Button asChild className="flex-1 bg-primary">
+                <Link href="/">Return to Home</Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="pb-20">
