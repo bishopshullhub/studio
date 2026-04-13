@@ -1,9 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Info, AlertTriangle, CheckCircle2, Ruler, ShieldCheck, Zap } from 'lucide-react';
+import { Info, AlertTriangle, CheckCircle2, Ruler, ShieldCheck, Zap, Camera } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import Image from 'next/image';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 export default function BouncyCastlesPage() {
+  const exampleImage = PlaceHolderImages.find(img => img.id === 'bouncy-castle-example');
+
   return (
     <div className="container mx-auto px-4 py-16 max-w-4xl space-y-12">
       <header className="space-y-4">
@@ -64,6 +68,26 @@ export default function BouncyCastlesPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Example Image Section */}
+      <section className="space-y-6">
+        <div className="flex items-center gap-2 text-primary font-bold uppercase tracking-widest text-sm font-headline">
+          <Camera className="h-5 w-5" /> See it in action
+        </div>
+        <div className="relative aspect-video rounded-3xl overflow-hidden shadow-xl border-4 border-white bg-muted">
+          <Image
+            src={exampleImage?.imageUrl || "https://picsum.photos/seed/bhh-bouncy/1024/768"}
+            alt={exampleImage?.description || "Bouncy Castle Example"}
+            fill
+            className="object-cover"
+            data-ai-hint="bouncy castle hall"
+          />
+          <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent p-6">
+            <p className="text-white font-medium text-lg">Standard indoor castle setup in the Bishops Hull Hub main hall.</p>
+            <p className="text-white/80 text-sm">Note the ample clearance around the vaulted ceiling.</p>
+          </div>
+        </div>
+      </section>
 
       <section className="bg-amber-50 border border-amber-200 rounded-3xl p-8 space-y-6">
         <div className="flex items-center gap-3 text-amber-800">
