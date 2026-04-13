@@ -11,24 +11,28 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle2, Wifi, Coffee, Users, Car, MapPin, User, Calendar, ClipboardCheck, ArrowRight, ArrowLeft, Info, Smile, CheckSquare } from 'lucide-react';
+import { CheckCircle2, Wifi, Coffee, Users, Car, MapPin, User, Calendar, ClipboardCheck, ArrowRight, ArrowLeft, Info, Smile, CheckSquare, AlertTriangle } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
 
 const formSchema = z.object({
-  // Step 2: Contact
+  // Step 2: Policy Acknowledgement
+  acknowledgedPolicies: z.boolean().refine(v => v === true, "Please acknowledge the policies to continue"),
+  
+  // Step 3: Contact
   name: z.string().min(2, "Name is required"),
   email: z.string().email("Invalid email address"),
   phone: z.string().min(10, "Valid phone number required"),
   
-  // Step 3: Event Details
+  // Step 4: Event Details
   date: z.string().min(1, "Date is required"),
   startTime: z.string().min(1, "Start time required"),
   endTime: z.string().min(1, "End time required"),
   attendance: z.string().min(1, "Est. attendance required"),
   
-  // Step 4: Requirements
+  // Step 5: Requirements
   typeOfEvent: z.string().min(2, "Event type is required"),
   requirements: z.string().optional(),
   agreedToTerms: z.boolean().refine(v => v === true, "You must agree to the terms"),
@@ -39,12 +43,13 @@ type FormValues = z.infer<typeof formSchema>;
 export default function HirePage() {
   const { toast } = useToast();
   const [step, setStep] = useState(1);
-  const totalSteps = 4;
+  const totalSteps = 5;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       requirements: "",
+      acknowledgedPolicies: false,
       agreedToTerms: false,
     },
   });
@@ -55,8 +60,9 @@ export default function HirePage() {
       setStep(2);
       return;
     }
-    if (step === 2) fieldsToValidate = ['name', 'email', 'phone'];
-    if (step === 3) fieldsToValidate = ['date', 'startTime', 'endTime', 'attendance'];
+    if (step === 2) fieldsToValidate = ['acknowledgedPolicies'];
+    if (step === 3) fieldsToValidate = ['name', 'email', 'phone'];
+    if (step === 4) fieldsToValidate = ['date', 'startTime', 'endTime', 'attendance'];
 
     const isValid = await form.trigger(fieldsToValidate);
     if (isValid) setStep(prev => Math.min(prev + 1, totalSteps));
@@ -107,9 +113,10 @@ export default function HirePage() {
                       <span className="text-xs font-bold uppercase tracking-widest text-primary">Step {step} of {totalSteps}</span>
                       <h2 className="text-2xl font-headline font-bold text-primary">
                         {step === 1 && "Pricing & Availability"}
-                        {step === 2 && "Contact Information"}
-                        {step === 3 && "Event Details"}
-                        {step === 4 && "Additional Requirements"}
+                        {step === 2 && "Venue Policies"}
+                        {step === 3 && "Contact Information"}
+                        {step === 4 && "Event Details"}
+                        {step === 5 && "Additional Requirements"}
                       </h2>
                     </div>
                     <span className="text-sm font-medium text-muted-foreground">{Math.round(progress)}% Complete</span>
@@ -120,9 +127,10 @@ export default function HirePage() {
                   <div className="hidden md:flex justify-between mt-6">
                     {[
                       { id: 1, label: "Availability", icon: Calendar },
-                      { id: 2, label: "Contact", icon: User },
-                      { id: 3, label: "Event", icon: ClipboardCheck },
-                      { id: 4, label: "Logistics", icon: CheckSquare }
+                      { id: 2, label: "Policies", icon: AlertTriangle },
+                      { id: 3, label: "Contact", icon: User },
+                      { id: 4, label: "Event", icon: ClipboardCheck },
+                      { id: 5, label: "Logistics", icon: CheckSquare }
                     ].map((s) => (
                       <div key={s.id} className={cn(
                         "flex items-center gap-2",
@@ -146,11 +154,6 @@ export default function HirePage() {
                     {/* STEP 1: PRICING & AVAILABILITY */}
                     {step === 1 && (
                       <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-500">
-                        <p className="text-muted-foreground text-center max-w-2xl mx-auto">
-                          Any single calendar day booking is billed at an hourly rate up to a maximum of 8 chargeable hours. 
-                          Additional consecutive hours on the same day are free within the agreed start and finish times, subject to availability.
-                        </p>
-
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           <div className="p-6 rounded-2xl bg-[#f2fcf5] border border-accent/10 space-y-4 text-center">
                             <h3 className="text-xl font-bold">Hourly Hire</h3>
@@ -174,30 +177,6 @@ export default function HirePage() {
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-6 border-t border-muted">
-                          <div className="text-center space-y-3">
-                            <div className="mx-auto w-12 h-12 bg-accent/10 text-accent rounded-xl flex items-center justify-center">
-                              <Calendar className="h-6 w-6" />
-                            </div>
-                            <h4 className="font-bold">Check Your Date</h4>
-                            <p className="text-xs text-muted-foreground">Go to our live Schedule to check your date is available.</p>
-                          </div>
-                          <div className="text-center space-y-3">
-                            <div className="mx-auto w-12 h-12 bg-primary/10 text-primary rounded-xl flex items-center justify-center">
-                              <ClipboardCheck className="h-6 w-6" />
-                            </div>
-                            <h4 className="font-bold">Fill out the Enquiry Form</h4>
-                            <p className="text-xs text-muted-foreground">Scroll down and fill out the enquiry form to get the ball rolling.</p>
-                          </div>
-                          <div className="text-center space-y-3">
-                            <div className="mx-auto w-12 h-12 bg-pink-50 text-pink-500 rounded-xl flex items-center justify-center">
-                              <Smile className="h-6 w-6" />
-                            </div>
-                            <h4 className="font-bold">Wait to be Contacted</h4>
-                            <p className="text-xs text-muted-foreground">We will get in contact to arrange a viewing and explain the process.</p>
-                          </div>
-                        </div>
-
                         <div className="pt-8 space-y-4">
                           <h3 className="text-xl font-bold text-center">Live Availability Schedule</h3>
                           <div className="rounded-2xl border border-border overflow-hidden bg-muted/20">
@@ -210,8 +189,68 @@ export default function HirePage() {
                       </div>
                     )}
 
-                    {/* STEP 2: CONTACT */}
+                    {/* STEP 2: VENUE POLICIES */}
                     {step === 2 && (
+                      <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+                        <div className="space-y-6">
+                          <div className="p-6 rounded-2xl bg-blue-50/50 border border-blue-100 space-y-3">
+                            <div className="flex items-center gap-3 text-blue-700">
+                              <div className="p-2 bg-blue-100 rounded-lg"><Info className="h-5 w-5" /></div>
+                              <h3 className="font-bold text-lg">Bouncy Castles</h3>
+                            </div>
+                            <p className="text-muted-foreground leading-relaxed">
+                              We can have bouncy castles inside and outside 👍 please see our guidance in the 
+                              <Link href="/faq" className="text-primary font-semibold hover:underline px-1">FAQ section</Link> 
+                              to help your choice.
+                            </p>
+                          </div>
+
+                          <div className="p-6 rounded-2xl bg-amber-50/50 border border-amber-100 space-y-3">
+                            <div className="flex items-center gap-3 text-amber-700">
+                              <div className="p-2 bg-amber-100 rounded-lg"><AlertTriangle className="h-5 w-5" /></div>
+                              <h3 className="font-bold text-lg">Fireworks</h3>
+                            </div>
+                            <p className="text-muted-foreground leading-relaxed">
+                              Due to the proximity of properties, schools and sports facilities we cannot permit the use of fireworks during the use of Bishops Hull Hub.
+                            </p>
+                          </div>
+
+                          <div className="p-6 rounded-2xl bg-red-50/50 border border-red-100 space-y-3">
+                            <div className="flex items-center gap-3 text-red-700">
+                              <div className="p-2 bg-red-100 rounded-lg"><Users className="h-5 w-5" /></div>
+                              <h3 className="font-bold text-lg">Weddings</h3>
+                            </div>
+                            <p className="text-muted-foreground leading-relaxed">
+                              Unfortunately we are unable to accommodate wedding ceremonies or formal receptions.
+                            </p>
+                          </div>
+                        </div>
+
+                        <FormField
+                          control={form.control}
+                          name="acknowledgedPolicies"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-6 rounded-2xl bg-primary/5 border border-primary/10">
+                              <FormControl>
+                                <Checkbox 
+                                  checked={field.value} 
+                                  onCheckedChange={field.onChange} 
+                                />
+                              </FormControl>
+                              <div className="space-y-1 leading-none">
+                                <FormLabel className="text-base font-bold text-primary">
+                                  I acknowledge these venue policies and restrictions.
+                                </FormLabel>
+                                <FormMessage />
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    )}
+
+                    {/* STEP 3: CONTACT */}
+                    {step === 3 && (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-right-4 duration-500">
                         <FormField
                           control={form.control}
@@ -249,8 +288,8 @@ export default function HirePage() {
                       </div>
                     )}
 
-                    {/* STEP 3: EVENT DETAILS */}
-                    {step === 3 && (
+                    {/* STEP 4: EVENT DETAILS */}
+                    {step === 4 && (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-right-4 duration-500">
                         <FormField
                           control={form.control}
@@ -299,8 +338,8 @@ export default function HirePage() {
                       </div>
                     )}
 
-                    {/* STEP 4: REQUIREMENTS */}
-                    {step === 4 && (
+                    {/* STEP 5: REQUIREMENTS */}
+                    {step === 5 && (
                       <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
                         <FormField
                           control={form.control}
@@ -343,7 +382,7 @@ export default function HirePage() {
                               </FormControl>
                               <div className="space-y-1 leading-none">
                                 <FormLabel>
-                                  I have read and agree to the <a href="/hire-agreement" className="text-primary hover:underline underline-offset-4">Standard Conditions of Hire</a>.
+                                  I have read and agree to the <Link href="/hire-agreement" className="text-primary hover:underline underline-offset-4">Standard Conditions of Hire</Link>.
                                 </FormLabel>
                                 <FormMessage />
                               </div>
@@ -443,7 +482,8 @@ export default function HirePage() {
                 <div className="space-y-3">
                   {[
                     "Check live availability above",
-                    "Read the Hire Agreement",
+                    "Read the Venue Policies",
+                    "Review the Hire Agreement",
                     "Understand cleaning duties",
                     "Confirm attendance < 110",
                   ].map((item, idx) => (
