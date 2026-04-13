@@ -14,6 +14,7 @@ export default function Header() {
     { name: "What's On", href: '/whats-on' },
     { name: 'Hire the Hub', href: '/hire' },
     { name: 'Community', href: '/community' },
+    { name: 'FAQ', href: '/faq' },
   ];
 
   return (

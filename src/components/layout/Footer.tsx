@@ -27,7 +27,7 @@ export default function Footer() {
               <li><Link href="/whats-on" className="hover:text-primary transition-colors">What's On</Link></li>
               <li><Link href="/hire" className="hover:text-primary transition-colors">Hire Information</Link></li>
               <li><Link href="/community" className="hover:text-primary transition-colors">Community Projects</Link></li>
-              <li><Link href="/hire#booking-form" className="hover:text-primary transition-colors">Booking Enquiry</Link></li>
+              <li><Link href="/faq" className="hover:text-primary transition-colors">FAQ's</Link></li>
               <li><Link href="/admin" className="hover:text-primary transition-colors">Admin Portal</Link></li>
             </ul>
           </div>
