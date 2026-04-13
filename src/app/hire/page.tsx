@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle2, Wifi, Coffee, Users, Car, MapPin, User, Calendar, ClipboardCheck, ArrowRight, ArrowLeft, Info, AlertTriangle, CheckSquare, PoundSterling } from 'lucide-react';
+import { CheckCircle2, Wifi, Coffee, Users, Car, MapPin, User, Calendar, ClipboardCheck, ArrowRight, ArrowLeft, Info, AlertTriangle, CheckSquare } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
@@ -23,6 +23,8 @@ const formSchema = z.object({
   // Step 3: Contact
   name: z.string().min(2, "Name is required"),
   email: z.string().email("Invalid email address"),
+  address: z.string().min(5, "Postal address is required"),
+  postcode: z.string().min(5, "Postcode is required"),
   phone: z.string().min(10, "Valid phone number required"),
   
   // Step 4: Event Details
@@ -47,6 +49,11 @@ export default function HirePage() {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      name: "",
+      email: "",
+      address: "",
+      postcode: "",
+      phone: "",
       requirements: "",
       acknowledgedPolicies: false,
       agreedToTerms: false,
@@ -60,7 +67,7 @@ export default function HirePage() {
       return;
     }
     if (step === 2) fieldsToValidate = ['acknowledgedPolicies'];
-    if (step === 3) fieldsToValidate = ['name', 'email', 'phone'];
+    if (step === 3) fieldsToValidate = ['name', 'email', 'address', 'postcode', 'phone'];
     if (step === 4) fieldsToValidate = ['date', 'startTime', 'endTime', 'attendance'];
 
     const isValid = await form.trigger(fieldsToValidate);
@@ -251,7 +258,7 @@ export default function HirePage() {
                       name="name"
                       render={({ field }) => (
                         <FormItem className="md:col-span-2">
-                          <FormLabel>Full Name</FormLabel>
+                          <FormLabel>Your Name</FormLabel>
                           <FormControl><Input placeholder="John Doe" {...field} /></FormControl>
                           <FormMessage />
                         </FormItem>
@@ -261,9 +268,31 @@ export default function HirePage() {
                       control={form.control}
                       name="email"
                       render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email Address</FormLabel>
+                        <FormItem className="md:col-span-2">
+                          <FormLabel>Your Email</FormLabel>
                           <FormControl><Input type="email" placeholder="john@example.com" {...field} /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="address"
+                      render={({ field }) => (
+                        <FormItem className="md:col-span-2">
+                          <FormLabel>Postal Address</FormLabel>
+                          <FormControl><Textarea placeholder="Enter your full street address" {...field} /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="postcode"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Postcode</FormLabel>
+                          <FormControl><Input placeholder="e.g. TA1 5EB" {...field} /></FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -273,7 +302,7 @@ export default function HirePage() {
                       name="phone"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Phone Number</FormLabel>
+                          <FormLabel>Telephone Number</FormLabel>
                           <FormControl><Input placeholder="07123 456789" {...field} /></FormControl>
                           <FormMessage />
                         </FormItem>
