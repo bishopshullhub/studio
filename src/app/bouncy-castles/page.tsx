@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Info, AlertTriangle, CheckCircle2, Ruler, ShieldCheck, Zap, Camera } from 'lucide-react';
+import { CheckCircle2, Ruler, ShieldCheck, Zap, Camera } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -76,7 +76,7 @@ export default function BouncyCastlesPage() {
         </div>
         <div className="relative aspect-video rounded-3xl overflow-hidden shadow-xl border-4 border-white bg-muted">
           <Image
-            src={exampleImage?.imageUrl || "https://picsum.photos/seed/bhh-bouncy/1024/768"}
+            src={exampleImage?.imageUrl || "https://bhhub.co.uk/wp-content/uploads/2022/07/Bouncy-Castle-Example2-1024x768.jpg"}
             alt={exampleImage?.description || "Bouncy Castle Example"}
             fill
             className="object-cover"

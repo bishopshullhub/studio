@@ -35,6 +35,12 @@
       "description": "Youth club activities",
       "imageUrl": "https://picsum.photos/seed/bhh-youth/600/400",
       "imageHint": "teens playing games"
+    },
+    {
+      "id": "bouncy-castle-example",
+      "description": "Example of a bouncy castle inside the main hall",
+      "imageUrl": "https://bhhub.co.uk/wp-content/uploads/2022/07/Bouncy-Castle-Example2-1024x768.jpg",
+      "imageHint": "bouncy castle hall"
     }
   ]
 }
