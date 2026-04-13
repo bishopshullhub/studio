@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -28,7 +28,14 @@ const formSchema = z.object({
   phone: z.string().min(10, "Valid phone number required"),
   
   // Step 4: Event Details
-  date: z.string().min(1, "Date is required"),
+  date: z.string().min(1, "Date is required").refine((val) => {
+    if (!val) return false;
+    const selectedDate = new Date(val);
+    const minDate = new Date();
+    minDate.setHours(0, 0, 0, 0);
+    minDate.setDate(minDate.getDate() + 14);
+    return selectedDate >= minDate;
+  }, "Bookings must be at least 14 days in advance"),
   startTime: z.string().min(1, "Start time required"),
   endTime: z.string().min(1, "End time required"),
   attendance: z.string().min(1, "Est. attendance required"),
@@ -44,7 +51,15 @@ type FormValues = z.infer<typeof formSchema>;
 export default function HirePage() {
   const { toast } = useToast();
   const [step, setStep] = useState(1);
+  const [minDateStr, setMinDateStr] = useState("");
   const totalSteps = 5;
+
+  useEffect(() => {
+    // Set minimum date to 14 days from now to prevent hydration mismatch
+    const date = new Date();
+    date.setDate(date.getDate() + 14);
+    setMinDateStr(date.toISOString().split('T')[0]);
+  }, []);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -324,8 +339,14 @@ export default function HirePage() {
                       name="date"
                       render={({ field }) => (
                         <FormItem className="md:col-span-2">
-                          <FormLabel>Date Required</FormLabel>
-                          <FormControl><Input type="date" {...field} /></FormControl>
+                          <FormLabel>Date Required (Minimum 14 days in advance)</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="date" 
+                              min={minDateStr}
+                              {...field} 
+                            />
+                          </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -335,8 +356,10 @@ export default function HirePage() {
                       name="startTime"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Start Time</FormLabel>
-                          <FormControl><Input type="time" {...field} /></FormControl>
+                          <FormLabel>Start Time (15-min increments)</FormLabel>
+                          <FormControl>
+                            <Input type="time" step="900" {...field} />
+                          </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -346,8 +369,10 @@ export default function HirePage() {
                       name="endTime"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>End Time</FormLabel>
-                          <FormControl><Input type="time" {...field} /></FormControl>
+                          <FormLabel>End Time (15-min increments)</FormLabel>
+                          <FormControl>
+                            <Input type="time" step="900" {...field} />
+                          </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
