@@ -1,0 +1,40 @@
+{
+  "placeholderImages": [
+    {
+      "id": "hero-bg",
+      "description": "Bishops Hull Hub exterior view with community garden",
+      "imageUrl": "https://picsum.photos/seed/bhh-hero/1200/600",
+      "imageHint": "modern building community hall"
+    },
+    {
+      "id": "garden-1",
+      "description": "Community garden in spring",
+      "imageUrl": "https://picsum.photos/seed/bhh-g1/800/600",
+      "imageHint": "community garden spring"
+    },
+    {
+      "id": "garden-2",
+      "description": "Community garden in summer",
+      "imageUrl": "https://picsum.photos/seed/bhh-g2/800/600",
+      "imageHint": "vibrant summer flowers"
+    },
+    {
+      "id": "garden-3",
+      "description": "Community garden in autumn",
+      "imageUrl": "https://picsum.photos/seed/bhh-g3/800/600",
+      "imageHint": "autumn garden leaves"
+    },
+    {
+      "id": "garden-4",
+      "description": "Community garden in winter",
+      "imageUrl": "https://picsum.photos/seed/bhh-g4/800/600",
+      "imageHint": "winter garden landscape"
+    },
+    {
+      "id": "youth-club",
+      "description": "Youth club activities",
+      "imageUrl": "https://picsum.photos/seed/bhh-youth/600/400",
+      "imageHint": "teens playing games"
+    }
+  ]
+}

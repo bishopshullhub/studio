@@ -1,4 +1,4 @@
-import type {Config} from 'tailwindcss';
+import type {Config} from 'tailwind-merge';
 
 export default {
   darkMode: ['class'],
@@ -96,4 +96,4 @@ export default {
     },
   },
   plugins: [require('tailwindcss-animate')],
-} satisfies Config;
+} satisfies any;
