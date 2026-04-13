@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle2, Wifi, Coffee, Users, Car, MapPin, User, Calendar, ClipboardCheck, ArrowRight, ArrowLeft, Info, AlertTriangle, CheckSquare, Mail, Phone as PhoneIcon } from 'lucide-react';
+import { CheckCircle2, Wifi, Coffee, Users, Car, MapPin, User, Calendar, ClipboardCheck, ArrowRight, ArrowLeft, Info, AlertTriangle, CheckSquare, Mail, Phone as PhoneIcon, Clock } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -48,6 +48,12 @@ const formSchema = z.object({
   typeOfEvent: z.string().min(2, "Event type is required"),
   requirements: z.string().optional(),
   agreedToTerms: z.boolean().refine(v => v === true, "You must agree to the terms"),
+}).refine((data) => {
+  if (!data.startTime || !data.endTime) return true;
+  return data.endTime > data.startTime;
+}, {
+  message: "End time must be after start time",
+  path: ["endTime"],
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -84,6 +90,24 @@ export default function HirePage() {
       agreedToTerms: false,
     },
   });
+
+  const startTime = form.watch("startTime");
+  const endTime = form.watch("endTime");
+
+  const calculateDuration = () => {
+    if (!startTime || !endTime) return null;
+    const [startH, startM] = startTime.split(':').map(Number);
+    const [endH, endM] = endTime.split(':').map(Number);
+    const startMinutes = startH * 60 + startM;
+    const endMinutes = endH * 60 + endM;
+    const diff = endMinutes - startMinutes;
+    if (diff <= 0) return null;
+    const h = Math.floor(diff / 60);
+    const m = diff % 60;
+    return `${h}h ${m}m`;
+  };
+
+  const duration = calculateDuration();
 
   const nextStep = async () => {
     let fieldsToValidate: (keyof FormValues)[] = [];
@@ -426,6 +450,14 @@ export default function HirePage() {
                         </FormItem>
                       )}
                     />
+                    
+                    {duration && (
+                      <div className="md:col-span-2 p-3 rounded-lg bg-accent/10 border border-accent/20 flex items-center gap-3">
+                        <Clock className="h-5 w-5 text-primary" />
+                        <span className="font-bold text-primary">Total Booking Duration: {duration}</span>
+                      </div>
+                    )}
+
                     <FormField
                       control={form.control}
                       name="attendance"
