@@ -10,9 +10,10 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle2, Wifi, Coffee, Users, Car, MapPin, User, Calendar, ClipboardCheck, ArrowRight, ArrowLeft, Info, AlertTriangle, CheckSquare } from 'lucide-react';
+import { CheckCircle2, Wifi, Coffee, Users, Car, MapPin, User, Calendar, ClipboardCheck, ArrowRight, ArrowLeft, Info, AlertTriangle, CheckSquare, Mail, Phone as PhoneIcon } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 
@@ -26,6 +27,9 @@ const formSchema = z.object({
   address: z.string().min(5, "Postal address is required"),
   postcode: z.string().min(5, "Postcode is required"),
   phone: z.string().min(10, "Valid phone number required"),
+  preferredContact: z.enum(["Email", "Phone"], {
+    required_error: "Please select a preferred contact method",
+  }),
   
   // Step 4: Event Details
   date: z.string().min(1, "Date is required").refine((val) => {
@@ -69,6 +73,7 @@ export default function HirePage() {
       address: "",
       postcode: "",
       phone: "",
+      preferredContact: "Email",
       date: "",
       startTime: "",
       endTime: "",
@@ -87,7 +92,7 @@ export default function HirePage() {
       return;
     }
     if (step === 2) fieldsToValidate = ['acknowledgedPolicies'];
-    if (step === 3) fieldsToValidate = ['name', 'email', 'address', 'postcode', 'phone'];
+    if (step === 3) fieldsToValidate = ['name', 'email', 'address', 'postcode', 'phone', 'preferredContact'];
     if (step === 4) fieldsToValidate = ['date', 'startTime', 'endTime', 'attendance'];
 
     const isValid = await form.trigger(fieldsToValidate);
@@ -297,6 +302,40 @@ export default function HirePage() {
                     />
                     <FormField
                       control={form.control}
+                      name="preferredContact"
+                      render={({ field }) => (
+                        <FormItem className="md:col-span-2">
+                          <FormLabel>Preferred Method of Contact</FormLabel>
+                          <FormControl>
+                            <RadioGroup
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                              className="flex gap-4 pt-2"
+                            >
+                              <FormItem className="flex items-center space-x-2 space-y-0">
+                                <FormControl>
+                                  <RadioGroupItem value="Email" />
+                                </FormControl>
+                                <FormLabel className="font-normal flex items-center gap-1 cursor-pointer">
+                                  <Mail className="h-4 w-4" /> Email
+                                </FormLabel>
+                              </FormItem>
+                              <FormItem className="flex items-center space-x-2 space-y-0">
+                                <FormControl>
+                                  <RadioGroupItem value="Phone" />
+                                </FormControl>
+                                <FormLabel className="font-normal flex items-center gap-1 cursor-pointer">
+                                  <PhoneIcon className="h-4 w-4" /> Phone
+                                </FormLabel>
+                              </FormItem>
+                            </RadioGroup>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
                       name="address"
                       render={({ field }) => (
                         <FormItem className="md:col-span-2">
@@ -334,6 +373,16 @@ export default function HirePage() {
                 {/* STEP 4: EVENT DETAILS */}
                 {step === 4 && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-right-4 duration-500">
+                    <div className="md:col-span-2 space-y-4">
+                      <div className="p-4 rounded-xl bg-primary/5 border border-primary/10 text-sm space-y-2">
+                        <div className="flex items-center gap-2 text-primary font-bold">
+                          <Info className="h-4 w-4" />
+                          Deposit Information
+                        </div>
+                        <p>Please note any evening events extending beyond 8pm will hold a <strong>£100</strong> refundable deposit. All other bookings will require a <strong>£50</strong> deposit.</p>
+                        <p className="text-muted-foreground italic">Deposits will be returned upon return of the facility in the condition found within 2 days of the hire.</p>
+                      </div>
+                    </div>
                     <FormField
                       control={form.control}
                       name="date"
