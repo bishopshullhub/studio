@@ -5,7 +5,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Clock, Calendar, Loader2, Zap, CalendarDays, ExternalLink, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Clock, Calendar, Loader2, Zap, CalendarDays, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
 import { getLiveCalendarEventsAction, LiveEvent } from '@/app/actions/get-calendar';
 import { format, isToday, parseISO, startOfWeek, addDays, eachDayOfInterval, isSameDay, addWeeks, subWeeks } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -176,11 +176,6 @@ export default function WhatsOnPage() {
                     </div>
                   )}
                 </div>
-                <div className="px-8 py-4 bg-muted/30 border-t flex justify-end group-hover:bg-primary/5 transition-colors">
-                  <Button variant="ghost" size="sm" className="text-primary font-bold gap-2" asChild>
-                    <a href="/hire#booking-form">Inquire about this date <ExternalLink className="h-3 w-3" /></a>
-                  </Button>
-                </div>
               </Card>
             ))}
           </div>
@@ -205,15 +200,8 @@ export default function WhatsOnPage() {
           <Badge variant="secondary" className="bg-white/20 text-white border-none px-4 py-1">FUNDRAISERS & SPECIALS</Badge>
           <h2 className="text-4xl font-headline font-bold">Special Event Tickets</h2>
           <p className="text-lg opacity-90 leading-relaxed">
-            Don't miss out on our seasonal fundraisers and special village events. Purchase your tickets securely online.
+            Don't miss out on our seasonal fundraisers and special village events. Check our notices for ticket availability.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-            <Button size="lg" variant="secondary" className="px-8 shadow-lg text-primary font-bold rounded-2xl h-14" asChild>
-              <a href="https://v2.hallmaster.co.uk/Scheduler/View/10228" target="_blank" rel="noopener noreferrer">
-                Browse All Tickets <ExternalLink className="ml-2 h-4 w-4" />
-              </a>
-            </Button>
-          </div>
         </div>
       </section>
     </div>
