@@ -40,11 +40,8 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
       <div className="container mx-auto px-4 h-20 flex items-center justify-between">
-        <Link href="/" className="flex items-center space-x-2 group">
-          <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-bold text-xl group-hover:scale-110 transition-transform">
-            B
-          </div>
-          <span className="font-headline font-bold text-xl text-primary hidden sm:inline-block">
+        <Link href="/" className="flex items-center group">
+          <span className="font-headline font-bold text-xl text-primary transition-colors group-hover:text-primary/80">
             Bishops Hull Hub
           </span>
         </Link>
