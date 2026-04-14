@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Menu, X, LogIn, User, LogOut, ShieldCheck } from 'lucide-react';
+import { Menu, X, LogIn, LogOut, ShieldCheck } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { useFirebase, initiateAnonymousSignIn } from '@/firebase';
@@ -11,10 +11,12 @@ import { useRouter } from 'next/navigation';
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { user, auth } = useFirebase();
   const router = useRouter();
 
   useEffect(() => {
+    setMounted(true);
     // Ensure we always have an identity for Firestore rules
     if (!user && auth) {
       initiateAnonymousSignIn(auth);
@@ -35,7 +37,7 @@ export default function Header() {
     setIsOpen(false);
   };
 
-  const isRealUser = user && !user.isAnonymous;
+  const isRealUser = mounted && user && !user.isAnonymous;
 
   return (
     <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
@@ -69,10 +71,12 @@ export default function Header() {
                 <LogOut className="h-4 w-4" /> Sign Out
               </Button>
             </div>
-          ) : (
+          ) : mounted ? (
             <Button asChild variant="outline" size="sm" className="gap-2">
               <Link href="/login"><LogIn className="h-4 w-4" /> Login</Link>
             </Button>
+          ) : (
+            <div className="w-20" /> // Spacer for layout stability
           )}
 
           <Button asChild variant="default" className="bg-primary hover:bg-primary/90 shadow-md">
@@ -117,11 +121,11 @@ export default function Header() {
                 <LogOut className="h-5 w-5" /> Sign Out
               </Button>
             </>
-          ) : (
+          ) : mounted ? (
             <Button asChild variant="outline" className="w-full gap-2 justify-start" onClick={() => setIsOpen(false)}>
               <Link href="/login"><LogIn className="h-5 w-5" /> Portal Login</Link>
             </Button>
-          )}
+          ) : null}
           <Button asChild className="w-full h-12 text-lg shadow-lg" onClick={() => setIsOpen(false)}>
             <Link href="/hire#booking-form">Book the Hub</Link>
           </Button>
