@@ -5,7 +5,7 @@ import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, LayoutDashboard, Settings, LogOut, Inbox, User, Mail, Phone, Clock, Calendar, ShieldAlert, Key, LogIn, FileText, CheckCircle2, MoreVertical, ArrowRight, XCircle, Clock3, LayoutGrid, List } from 'lucide-react';
+import { Loader2, LayoutDashboard, Settings, LogOut, Inbox, User, Mail, Phone, Clock, Calendar, ShieldAlert, Key, LogIn, FileText, CheckCircle2, MoreVertical, ArrowRight, XCircle, Clock3, LayoutGrid, List, AlertCircle } from 'lucide-react';
 import { useFirebase, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { doc, collection, query, orderBy, updateDoc } from 'firebase/firestore';
 import { Badge } from '@/components/ui/badge';
@@ -39,6 +39,24 @@ export default function AdminPortal() {
   }, [firestore, adminRecord]);
   
   const { data: enquiries, isLoading: loadingEnquiries } = useCollection(enquiriesQuery);
+
+  // Calculate upcoming bookings (Confirmed status within next 7 days)
+  const upcomingBookings = useMemo(() => {
+    if (!enquiries) return [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const nextWeek = new Date();
+    nextWeek.setDate(today.getDate() + 7);
+    nextWeek.setHours(23, 59, 59, 999);
+
+    return enquiries
+      .filter(e => {
+        if (e.status !== 'Confirmed') return false;
+        const bookingDate = new Date(e.dateRequired);
+        return bookingDate >= today && bookingDate <= nextWeek;
+      })
+      .sort((a, b) => new Date(a.dateRequired).getTime() - new Date(b.dateRequired).getTime());
+  }, [enquiries]);
 
   const handleUpdateStatus = async (enquiryId: string, newStatus: string) => {
     try {
@@ -177,6 +195,45 @@ export default function AdminPortal() {
             </Button>
           </div>
         </div>
+
+        {/* Upcoming Bookings Display (Next 7 Days) */}
+        {!loadingEnquiries && (
+          <section className="mb-10 animate-in fade-in slide-in-from-top-4 duration-700">
+            <div className="flex items-center gap-2 mb-4">
+              <Clock className="h-5 w-5 text-primary" />
+              <h2 className="text-xl font-headline font-bold text-primary">Upcoming Bookings (Next 7 Days)</h2>
+            </div>
+            
+            {upcomingBookings.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {upcomingBookings.map((booking) => (
+                  <Card key={booking.id} className="border-l-4 border-l-green-500 shadow-sm bg-white overflow-hidden">
+                    <CardContent className="p-4 space-y-2">
+                      <div className="flex justify-between items-start">
+                        <Badge variant="outline" className="text-[9px] uppercase font-bold">{booking.dateRequired}</Badge>
+                        <Badge className="bg-green-100 text-green-700 hover:bg-green-100 text-[9px] uppercase font-bold">Confirmed</Badge>
+                      </div>
+                      <h3 className="font-bold text-primary line-clamp-1">{booking.name}</h3>
+                      <div className="flex flex-col gap-1 text-xs text-muted-foreground">
+                        <div className="flex items-center gap-1.5">
+                          <Clock className="h-3 w-3" /> {booking.startTime} - {booking.endTime}
+                        </div>
+                        <div className="flex items-center gap-1.5 font-medium text-foreground">
+                           {booking.typeOfEvent}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white rounded-2xl border p-8 text-center space-y-2 border-dashed">
+                <Calendar className="h-8 w-8 text-muted-foreground opacity-20 mx-auto" />
+                <p className="text-sm text-muted-foreground italic">No confirmed bookings in the next 7 days.</p>
+              </div>
+            )}
+          </section>
+        )}
 
         {loadingEnquiries ? (
           <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border shadow-sm">
