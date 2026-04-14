@@ -5,7 +5,7 @@ import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, LayoutDashboard, Settings, LogOut, Inbox, User, Mail, Phone, Clock, Calendar, ShieldAlert, Key, LogIn, FileText, CheckCircle2, MoreVertical, ArrowRight, XCircle, Clock3, LayoutGrid, List, AlertCircle, MapPin, Users, ChevronDown, ChevronUp, ShieldCheck, UserPlus, Trash2 } from 'lucide-react';
+import { Loader2, LayoutDashboard, LogOut, Inbox, User, Mail, Phone, Clock, Calendar, ShieldAlert, Key, LogIn, FileText, CheckCircle2, MoreVertical, ArrowRight, XCircle, Clock3, LayoutGrid, List, MapPin, Users, ChevronDown, ChevronUp, ShieldCheck, UserPlus, Trash2 } from 'lucide-react';
 import { useFirebase, useCollection, useMemoFirebase, useDoc, setDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
 import { doc, collection, query, orderBy, updateDoc } from 'firebase/firestore';
 import { Badge } from '@/components/ui/badge';
@@ -24,6 +24,8 @@ const STATUS_COLUMNS = [
   { id: 'Rejected', label: 'Rejected', color: 'bg-red-500', icon: XCircle },
 ];
 
+const PRIMARY_ADMIN_EMAIL = 'bishopshullhub@gmail.com';
+
 export default function AdminPortal() {
   const { toast } = useToast();
   const { firestore, auth, user, isUserLoading } = useFirebase();
@@ -37,19 +39,25 @@ export default function AdminPortal() {
   
   const { data: adminRecord, isLoading: checkingAdmin } = useDoc(adminDocRef);
 
-  // Enquiries Query
+  // Determine if user has admin access (either via record or primary email)
+  const hasAdminAccess = useMemo(() => {
+    if (!user) return false;
+    return !!adminRecord || user.email === PRIMARY_ADMIN_EMAIL;
+  }, [adminRecord, user]);
+
+  // Enquiries Query - Strictly gate behind access check
   const enquiriesQuery = useMemoFirebase(() => {
-    if (!adminRecord) return null;
+    if (!hasAdminAccess) return null;
     return query(collection(firestore, 'booking_enquiries'), orderBy('submissionDateTime', 'desc'));
-  }, [firestore, adminRecord]);
+  }, [firestore, hasAdminAccess]);
   
   const { data: enquiries, isLoading: loadingEnquiries } = useCollection(enquiriesQuery);
 
-  // Security Team Query
+  // Security Team Query - Strictly gate behind access check
   const securityQuery = useMemoFirebase(() => {
-    if (!adminRecord) return null;
+    if (!hasAdminAccess) return null;
     return query(collection(firestore, 'security_team'), orderBy('addedAt', 'desc'));
-  }, [firestore, adminRecord]);
+  }, [firestore, hasAdminAccess]);
 
   const { data: securityContacts, isLoading: loadingSecurity } = useCollection(securityQuery);
 
@@ -146,7 +154,7 @@ export default function AdminPortal() {
     );
   }
 
-  if (!adminRecord) {
+  if (!hasAdminAccess) {
     return (
       <div className="min-h-screen bg-muted/30 flex items-center justify-center p-4">
         <Card className="max-w-md w-full border-none shadow-2xl">
