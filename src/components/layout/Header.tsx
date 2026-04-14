@@ -3,9 +3,9 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Menu, X, LogIn, User, LogOut, ShieldCheck } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { useFirebase } from '@/firebase';
+import { useFirebase, initiateAnonymousSignIn } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 
@@ -13,6 +13,13 @@ export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const { user, auth } = useFirebase();
   const router = useRouter();
+
+  useEffect(() => {
+    // Ensure we always have an identity for Firestore rules
+    if (!user && auth) {
+      initiateAnonymousSignIn(auth);
+    }
+  }, [user, auth]);
 
   const navLinks = [
     { name: 'Home', href: '/' },

@@ -7,27 +7,7 @@
  * ensure the website remains accessible to all visitors. Data modification is strictly 
  * reserved for users whose UIDs are present in the top-level 'admins' collection.
  *
- * Data Structure:
- * The database is organized into flat, top-level collections for primary entities:
- * - /weekly_schedules: Publicly viewable activity timetables.
- * - /community_initiatives: Publicly viewable community projects.
- * - /gallery_images: Publicly viewable image metadata.
- * - /page_contents: Publicly viewable static website content.
- * - /booking_enquiries: Private submissions from users, readable only by admins.
- * - /admins: A registry of UIDs that grant administrative access.
- *
- * Key Security Decisions:
- * - Administrative Access: Handled via the 'admins' collection. This allows for high-performance 
- *   permission checks using the exists() function, avoiding complex custom claims.
- * - Public Submissions: Any authenticated user (including anonymous) can submit a 
- *   booking enquiry, but only admins can view or manage them.
- * - Relational Integrity: On creation of any document, the internal 'id' field must 
- *   match the Firestore Document ID to ensure data consistency for client-side queries.
- *
- * Denormalization for Authorization:
- * Because administrative privileges are centralized in the /admins collection, 
- * no data denormalization is required on the entity documents themselves. This 
- * maintains a clean schema while ensuring robust, centralized access control.
+ * Updated: Force re-deploy to ensure public read access is active.
  */
 
 rules_version = '2';
@@ -66,10 +46,6 @@ service cloud.firestore {
     /**
      * @description Publicly readable activity schedules; editable only by admins.
      * @path /weekly_schedules/{scheduleId}
-     * @allow get, list: if true; (Public access)
-     * @allow create: if isAdmin() && matchesPathId(scheduleId);
-     * @deny update: if !isAdmin(); (Only admins can change schedules)
-     * @principle Role-based administrative writes with public read access.
      */
     match /weekly_schedules/{scheduleId} {
       allow get, list: if true;
@@ -81,10 +57,6 @@ service cloud.firestore {
     /**
      * @description Secure collection for booking enquiries. Submission is public; management is admin-only.
      * @path /booking_enquiries/{enquiryId}
-     * @allow create: if isSignedIn() && matchesPathId(enquiryId); (Anonymous/Auth submission)
-     * @allow get, list: if isAdmin(); (Admin-only review)
-     * @deny get: if !isAdmin(); (Users cannot see their own enquiries after submission for security)
-     * @principle Restricted read access with authorized document creation.
      */
     match /booking_enquiries/{enquiryId} {
       allow get, list: if isAdmin();
@@ -96,10 +68,6 @@ service cloud.firestore {
     /**
      * @description Publicly readable community initiatives and projects.
      * @path /community_initiatives/{initiativeId}
-     * @allow get, list: if true;
-     * @allow create: if isAdmin() && matchesPathId(initiativeId);
-     * @deny delete: if !isAdmin();
-     * @principle Enforces administrative control over public-facing content.
      */
     match /community_initiatives/{initiativeId} {
       allow get, list: if true;
@@ -111,10 +79,6 @@ service cloud.firestore {
     /**
      * @description Metadata for images displayed in the site galleries.
      * @path /gallery_images/{imageId}
-     * @allow get, list: if true;
-     * @allow create: if isAdmin() && matchesPathId(imageId);
-     * @deny update: if request.resource.data.storagePath == null; (Hypothetical integrity check)
-     * @principle Public gallery access with restricted administrative management.
      */
     match /gallery_images/{imageId} {
       allow get, list: if true;
@@ -126,10 +90,6 @@ service cloud.firestore {
     /**
      * @description Static page content (e.g., Privacy Policy, Hire Prices).
      * @path /page_contents/{contentId}
-     * @allow get, list: if true;
-     * @allow create: if isAdmin() && matchesPathId(contentId);
-     * @deny create: if !isAdmin();
-     * @principle Facilitates dynamic content management by administrators.
      */
     match /page_contents/{contentId} {
       allow get, list: if true;
@@ -141,10 +101,6 @@ service cloud.firestore {
     /**
      * @description The registry of administrative users.
      * @path /admins/{adminId}
-     * @allow get: if isSignedIn(); (Users check if they are admins)
-     * @allow list: if isAdmin(); (Admins can see the admin list)
-     * @deny create, update, delete: if true; (Admin management happens via manual console or Cloud Functions)
-     * @principle Root-level security for the authorization source of truth.
      */
     match /admins/{adminId} {
       allow get: if isSignedIn();
