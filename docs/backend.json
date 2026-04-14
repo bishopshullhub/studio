@@ -198,6 +198,18 @@
         "content",
         "lastUpdated"
       ]
+    },
+    "SecurityContact": {
+      "title": "SecurityContact",
+      "type": "object",
+      "description": "A contact person in the security team mailing list.",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "addedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "email", "addedAt"]
     }
   },
   "auth": {
@@ -246,6 +258,16 @@
             "$ref": "#/backend/entities/PageContent"
           },
           "description": "Manages static content for various pages."
+        }
+      },
+      {
+        "path": "/security_team/{contactId}",
+        "definition": {
+          "entityName": "SecurityContact",
+          "schema": {
+            "$ref": "#/backend/entities/SecurityContact"
+          },
+          "description": "Mailing list for the security team."
         }
       },
       {

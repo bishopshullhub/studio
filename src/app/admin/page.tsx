@@ -5,14 +5,17 @@ import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, LayoutDashboard, Settings, LogOut, Inbox, User, Mail, Phone, Clock, Calendar, ShieldAlert, Key, LogIn, FileText, CheckCircle2, MoreVertical, ArrowRight, XCircle, Clock3, LayoutGrid, List, AlertCircle, MapPin, Users, ChevronDown, ChevronUp } from 'lucide-react';
-import { useFirebase, useCollection, useMemoFirebase, useDoc } from '@/firebase';
+import { Loader2, LayoutDashboard, Settings, LogOut, Inbox, User, Mail, Phone, Clock, Calendar, ShieldAlert, Key, LogIn, FileText, CheckCircle2, MoreVertical, ArrowRight, XCircle, Clock3, LayoutGrid, List, AlertCircle, MapPin, Users, ChevronDown, ChevronUp, ShieldCheck, UserPlus, Trash2 } from 'lucide-react';
+import { useFirebase, useCollection, useMemoFirebase, useDoc, setDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
 import { doc, collection, query, orderBy, updateDoc } from 'firebase/firestore';
 import { Badge } from '@/components/ui/badge';
 import { signOut } from 'firebase/auth';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 const STATUS_COLUMNS = [
   { id: 'Pending', label: 'Pending', color: 'bg-amber-500', icon: Clock3 },
@@ -25,6 +28,7 @@ export default function AdminPortal() {
   const { toast } = useToast();
   const { firestore, auth, user, isUserLoading } = useFirebase();
   const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
+  const [activeTab, setActiveTab] = useState('enquiries');
   
   // Status check for Admin role in Firestore
   const adminDocRef = useMemoFirebase(() => {
@@ -33,6 +37,7 @@ export default function AdminPortal() {
   
   const { data: adminRecord, isLoading: checkingAdmin } = useDoc(adminDocRef);
 
+  // Enquiries Query
   const enquiriesQuery = useMemoFirebase(() => {
     if (!adminRecord) return null;
     return query(collection(firestore, 'booking_enquiries'), orderBy('submissionDateTime', 'desc'));
@@ -40,7 +45,15 @@ export default function AdminPortal() {
   
   const { data: enquiries, isLoading: loadingEnquiries } = useCollection(enquiriesQuery);
 
-  // Calculate upcoming bookings (Confirmed status within next 7 days)
+  // Security Team Query
+  const securityQuery = useMemoFirebase(() => {
+    if (!adminRecord) return null;
+    return query(collection(firestore, 'security_team'), orderBy('addedAt', 'desc'));
+  }, [firestore, adminRecord]);
+
+  const { data: securityContacts, isLoading: loadingSecurity } = useCollection(securityQuery);
+
+  // Calculate upcoming bookings
   const upcomingBookings = useMemo(() => {
     if (!enquiries) return [];
     const today = new Date();
@@ -66,6 +79,24 @@ export default function AdminPortal() {
     } catch (error) {
       toast({ variant: "destructive", title: "Update Failed", description: "Permissions or connection error." });
     }
+  };
+
+  const handleAddSecurityContact = (name: string, email: string) => {
+    const contactId = Math.random().toString(36).substring(7);
+    const docRef = doc(firestore, 'security_team', contactId);
+    setDocumentNonBlocking(docRef, {
+      id: contactId,
+      name,
+      email,
+      addedAt: new Date().toISOString()
+    }, {});
+    toast({ title: "Contact Added", description: `${name} has been added to the Security Team.` });
+  };
+
+  const handleDeleteSecurityContact = (contactId: string) => {
+    const docRef = doc(firestore, 'security_team', contactId);
+    deleteDocumentNonBlocking(docRef);
+    toast({ title: "Contact Removed", description: "Team member has been removed." });
   };
 
   const handleLogout = async () => {
@@ -140,9 +171,6 @@ export default function AdminPortal() {
                 {user.uid}
               </code>
             </div>
-            <p className="text-sm text-center text-muted-foreground leading-relaxed">
-              To grant access, please add this ID to the <strong>admins</strong> collection in the Firebase Console.
-            </p>
           </CardContent>
           <CardFooter className="flex flex-col gap-3">
             <Button onClick={handleLogout} variant="outline" className="w-full gap-2">
@@ -171,186 +199,215 @@ export default function AdminPortal() {
             </div>
           </div>
           
-          <div className="flex items-center gap-2">
-            <div className="bg-white rounded-lg p-1 border shadow-sm flex items-center mr-2">
-              <Button 
-                variant={viewMode === 'kanban' ? 'secondary' : 'ghost'} 
-                size="sm" 
-                onClick={() => setViewMode('kanban')}
-                className="gap-2"
-              >
-                <LayoutGrid className="h-4 w-4" /> Kanban
-              </Button>
-              <Button 
-                variant={viewMode === 'list' ? 'secondary' : 'ghost'} 
-                size="sm" 
-                onClick={() => setViewMode('list')}
-                className="gap-2"
-              >
-                <List className="h-4 w-4" /> List
-              </Button>
-            </div>
-            <Button variant="outline" className="gap-2 shadow-sm" onClick={handleLogout}>
+          <div className="flex items-center gap-4">
+             <Button variant="outline" className="gap-2 shadow-sm" onClick={handleLogout}>
               <LogOut className="h-4 w-4" /> Sign Out
             </Button>
           </div>
         </div>
 
-        {/* Upcoming Bookings Display (Next 7 Days) */}
-        {!loadingEnquiries && (
-          <section className="mb-10 animate-in fade-in slide-in-from-top-4 duration-700">
-            <div className="flex items-center gap-2 mb-4">
-              <Clock className="h-5 w-5 text-primary" />
-              <h2 className="text-xl font-headline font-bold text-primary">Upcoming Bookings (Next 7 Days)</h2>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
+          <TabsList className="bg-white border p-1 rounded-2xl h-14 shadow-sm w-fit">
+            <TabsTrigger value="enquiries" className="rounded-xl px-6 h-full data-[state=active]:bg-primary data-[state=active]:text-white">
+              <Inbox className="h-4 w-4 mr-2" /> Booking Enquiries
+            </TabsTrigger>
+            <TabsTrigger value="security" className="rounded-xl px-6 h-full data-[state=active]:bg-primary data-[state=active]:text-white">
+              <ShieldCheck className="h-4 w-4 mr-2" /> Security Team
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="enquiries" className="space-y-8 animate-in fade-in duration-500">
+            {/* Upcoming Bookings Display (Next 7 Days) */}
+            {!loadingEnquiries && upcomingBookings.length > 0 && (
+              <section className="animate-in slide-in-from-top-4 duration-700">
+                <div className="flex items-center gap-2 mb-4">
+                  <Clock className="h-5 w-5 text-primary" />
+                  <h2 className="text-xl font-headline font-bold text-primary">Upcoming Bookings (Next 7 Days)</h2>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {upcomingBookings.map((booking) => (
+                    <Card key={booking.id} className="border-l-4 border-l-green-500 shadow-sm bg-white overflow-hidden">
+                      <CardContent className="p-4 space-y-2">
+                        <div className="flex justify-between items-start">
+                          <Badge variant="outline" className="text-[9px] uppercase font-bold">{booking.dateRequired}</Badge>
+                          <Badge className="bg-green-100 text-green-700 hover:bg-green-100 text-[9px] uppercase font-bold">Confirmed</Badge>
+                        </div>
+                        <h3 className="font-bold text-primary line-clamp-1">{booking.name}</h3>
+                        <div className="flex flex-col gap-1 text-xs text-muted-foreground">
+                          <div className="flex items-center gap-1.5">
+                            <Clock className="h-3 w-3" /> {booking.startTime} - {booking.endTime}
+                          </div>
+                          <div className="flex items-center gap-1.5 font-medium text-foreground">
+                            {booking.typeOfEvent}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <Inbox className="h-5 w-5 text-primary" />
+                <h2 className="text-xl font-headline font-bold text-primary">All Enquiries</h2>
+              </div>
+              <div className="bg-white rounded-lg p-1 border shadow-sm flex items-center">
+                <Button variant={viewMode === 'kanban' ? 'secondary' : 'ghost'} size="sm" onClick={() => setViewMode('kanban')} className="gap-2">
+                  <LayoutGrid className="h-4 w-4" /> Kanban
+                </Button>
+                <Button variant={viewMode === 'list' ? 'secondary' : 'ghost'} size="sm" onClick={() => setViewMode('list')} className="gap-2">
+                  <List className="h-4 w-4" /> List
+                </Button>
+              </div>
             </div>
-            
-            {upcomingBookings.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {upcomingBookings.map((booking) => (
-                  <Card key={booking.id} className="border-l-4 border-l-green-500 shadow-sm bg-white overflow-hidden">
-                    <CardContent className="p-4 space-y-2">
-                      <div className="flex justify-between items-start">
-                        <Badge variant="outline" className="text-[9px] uppercase font-bold">{booking.dateRequired}</Badge>
-                        <Badge className="bg-green-100 text-green-700 hover:bg-green-100 text-[9px] uppercase font-bold">Confirmed</Badge>
-                      </div>
-                      <h3 className="font-bold text-primary line-clamp-1">{booking.name}</h3>
-                      <div className="flex flex-col gap-1 text-xs text-muted-foreground">
-                        <div className="flex items-center gap-1.5">
-                          <Clock className="h-3 w-3" /> {booking.startTime} - {booking.endTime}
-                        </div>
-                        <div className="flex items-center gap-1.5 font-medium text-foreground">
-                           {booking.typeOfEvent}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <div className="bg-white rounded-2xl border p-8 text-center space-y-2 border-dashed">
-                <Calendar className="h-8 w-8 text-muted-foreground opacity-20 mx-auto" />
-                <p className="text-sm text-muted-foreground italic">No confirmed bookings in the next 7 days.</p>
-              </div>
-            )}
-          </section>
-        )}
 
-        {loadingEnquiries ? (
-          <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border shadow-sm">
-            <Loader2 className="h-8 w-8 text-primary animate-spin mb-4" />
-            <p className="text-muted-foreground">Loading enquiries...</p>
-          </div>
-        ) : enquiries && enquiries.length > 0 ? (
-          <>
-            {viewMode === 'kanban' ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-start">
-                {STATUS_COLUMNS.map((column) => {
-                  const columnEnquiries = enquiries.filter(e => (e.status || 'Pending') === column.id);
-                  const Icon = column.icon;
-                  
-                  return (
-                    <div key={column.id} className="flex flex-col gap-4 min-h-[500px]">
-                      <div className="flex items-center justify-between px-2">
-                        <div className="flex items-center gap-2">
-                          <div className={cn("w-2 h-2 rounded-full", column.color)} />
-                          <h3 className="font-bold text-primary font-headline">{column.label}</h3>
-                          <Badge variant="secondary" className="ml-1">{columnEnquiries.length}</Badge>
-                        </div>
-                      </div>
-                      
-                      <div className="flex flex-col gap-4 bg-muted/20 p-3 rounded-2xl min-h-[400px] border-2 border-dashed border-muted">
-                        {columnEnquiries.map((enquiry) => (
-                          <KanbanCard 
-                            key={enquiry.id} 
-                            enquiry={enquiry} 
-                            onUpdateStatus={handleUpdateStatus} 
-                          />
-                        ))}
-                        {columnEnquiries.length === 0 && (
-                          <div className="flex-1 flex items-center justify-center p-8 text-center">
-                            <p className="text-xs text-muted-foreground italic">No {column.label.toLowerCase()} enquiries</p>
+            {loadingEnquiries ? (
+              <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border shadow-sm">
+                <Loader2 className="h-8 w-8 text-primary animate-spin mb-4" />
+                <p className="text-muted-foreground">Loading enquiries...</p>
+              </div>
+            ) : enquiries && enquiries.length > 0 ? (
+              <>
+                {viewMode === 'kanban' ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-start">
+                    {STATUS_COLUMNS.map((column) => {
+                      const columnEnquiries = enquiries.filter(e => (e.status || 'Pending') === column.id);
+                      return (
+                        <div key={column.id} className="flex flex-col gap-4 min-h-[500px]">
+                          <div className="flex items-center gap-2 px-2">
+                            <div className={cn("w-2 h-2 rounded-full", column.color)} />
+                            <h3 className="font-bold text-primary font-headline">{column.label}</h3>
+                            <Badge variant="secondary" className="ml-1">{columnEnquiries.length}</Badge>
                           </div>
-                        )}
+                          <div className="flex flex-col gap-4 bg-muted/20 p-3 rounded-2xl min-h-[400px] border-2 border-dashed border-muted">
+                            {columnEnquiries.map((enquiry) => (
+                              <KanbanCard key={enquiry.id} enquiry={enquiry} onUpdateStatus={handleUpdateStatus} />
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {enquiries.map((enquiry) => (
+                      <Card key={enquiry.id} className="border-none shadow-md bg-white overflow-hidden">
+                        <div className="bg-primary/5 px-6 py-4 flex items-center justify-between border-b border-primary/10">
+                          <div className="flex items-center gap-3">
+                            <Badge variant="outline" className="bg-white font-mono text-[10px] uppercase">ID: {enquiry.id}</Badge>
+                            <span className="text-xs text-muted-foreground">{new Date(enquiry.submissionDateTime).toLocaleString()}</span>
+                          </div>
+                          <Badge className={
+                            enquiry.status === 'Pending' ? 'bg-amber-100 text-amber-700 hover:bg-amber-100' :
+                            enquiry.status === 'Confirmed' ? 'bg-green-100 text-green-700 hover:bg-green-100' :
+                            enquiry.status === 'Rejected' ? 'bg-red-100 text-red-700 hover:bg-red-100' :
+                            'bg-blue-100 text-blue-700 hover:bg-blue-100'
+                          }>
+                            {enquiry.status || 'Pending'}
+                          </Badge>
+                        </div>
+                        <CardContent className="p-6">
+                           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div className="space-y-4">
+                              <div className="flex items-center gap-2 text-primary font-bold"><User className="h-4 w-4" /><span>{enquiry.name}</span></div>
+                              <div className="text-sm text-muted-foreground"><Mail className="h-3 w-3 inline mr-1" /> {enquiry.emailAddress} | <Phone className="h-3 w-3 inline mr-1" /> {enquiry.phoneNumber}</div>
+                            </div>
+                            <div className="space-y-4">
+                              <div className="flex items-center gap-2 text-primary font-bold"><Calendar className="h-4 w-4" /><span>{enquiry.typeOfEvent}</span></div>
+                              <div className="text-sm text-muted-foreground"><Clock className="h-3 w-3 inline mr-1" /> {enquiry.dateRequired} | {enquiry.startTime} - {enquiry.endTime}</div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="text-center py-20 bg-white rounded-3xl border border-dashed text-muted-foreground">No enquiries found.</div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="security" className="space-y-8 animate-in fade-in duration-500">
+            <div className="flex flex-col lg:flex-row gap-8">
+              <Card className="flex-1 border-none shadow-xl bg-white h-fit">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-primary">
+                    <UserPlus className="h-5 w-5" /> Add New Security Contact
+                  </CardTitle>
+                  <CardDescription>Enter details to add a member to the Security Team mailing list.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={(e) => {
+                    e.preventDefault();
+                    const formData = new FormData(e.currentTarget);
+                    handleAddSecurityContact(formData.get('name') as string, formData.get('email') as string);
+                    (e.target as HTMLFormElement).reset();
+                  }} className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="contact-name">Full Name</Label>
+                        <Input id="contact-name" name="name" placeholder="e.g. Paul Smith" required />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="contact-email">Email Address</Label>
+                        <Input id="contact-email" name="email" type="email" placeholder="paul@example.com" required />
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {enquiries.map((enquiry) => (
-                  <Card key={enquiry.id} className="border-none shadow-md bg-white overflow-hidden group">
-                    <div className="bg-primary/5 px-6 py-4 flex items-center justify-between border-b border-primary/10">
-                      <div className="flex items-center gap-3">
-                        <Badge variant="outline" className="bg-white font-mono text-[10px] uppercase">ID: {enquiry.id}</Badge>
-                        <span className="text-xs text-muted-foreground">{new Date(enquiry.submissionDateTime).toLocaleString()}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge className={
-                          enquiry.status === 'Pending' ? 'bg-amber-100 text-amber-700 hover:bg-amber-100' :
-                          enquiry.status === 'Confirmed' ? 'bg-green-100 text-green-700 hover:bg-green-100' :
-                          enquiry.status === 'Rejected' ? 'bg-red-100 text-red-700 hover:bg-red-100' :
-                          'bg-blue-100 text-blue-700 hover:bg-blue-100'
-                        }>
-                          {enquiry.status || 'Pending'}
-                        </Badge>
-                        <select 
-                          className="text-[10px] font-bold border-none bg-transparent outline-none focus:ring-0 cursor-pointer"
-                          value={enquiry.status || 'Pending'}
-                          onChange={(e) => handleUpdateStatus(enquiry.id, e.target.value)}
-                        >
-                          <option value="Pending">Pending</option>
-                          <option value="Reviewed">Reviewed</option>
-                          <option value="Confirmed">Confirmed</option>
-                          <option value="Rejected">Rejected</option>
-                        </select>
-                      </div>
-                    </div>
-                    <CardContent className="p-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div className="space-y-4">
-                          <div className="flex items-center gap-2 text-primary font-bold">
-                            <User className="h-4 w-4" />
-                            <span>{enquiry.name}</span>
-                          </div>
-                          <div className="grid grid-cols-1 gap-2 text-sm">
-                            <div className="flex items-center gap-2 text-muted-foreground">
-                              <Mail className="h-3 w-3" /> {enquiry.emailAddress}
-                            </div>
-                            <div className="flex items-center gap-2 text-muted-foreground">
-                              <Phone className="h-3 w-3" /> {enquiry.phoneNumber}
-                            </div>
-                          </div>
-                        </div>
+                    <Button type="submit" className="w-full md:w-fit gap-2">
+                      <UserPlus className="h-4 w-4" /> Add to List
+                    </Button>
+                  </form>
+                </CardContent>
+              </Card>
 
-                        <div className="space-y-4">
-                          <div className="flex items-center gap-2 text-primary font-bold">
-                            <Calendar className="h-4 w-4" />
-                            <span>{enquiry.typeOfEvent}</span>
-                          </div>
-                          <div className="grid grid-cols-2 gap-y-2 text-sm">
-                            <div className="flex items-center gap-2 text-muted-foreground">
-                              <Calendar className="h-3 w-3" /> {enquiry.dateRequired}
+              <Card className="flex-[2] border-none shadow-xl bg-white min-h-[400px]">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-primary">
+                    <ShieldCheck className="h-5 w-5" /> Current Security Team
+                  </CardTitle>
+                  <CardDescription>Members listed here receive security-related notifications.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {loadingSecurity ? (
+                    <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
+                  ) : securityContacts && securityContacts.length > 0 ? (
+                    <div className="space-y-3">
+                      {securityContacts.map((contact) => (
+                        <div key={contact.id} className="flex items-center justify-between p-4 bg-muted/30 rounded-xl hover:bg-muted/50 transition-colors">
+                          <div className="flex items-center gap-4">
+                            <div className="h-10 w-10 bg-primary/10 text-primary rounded-full flex items-center justify-center font-bold">
+                              {contact.name.charAt(0)}
                             </div>
-                            <div className="flex items-center gap-2 text-muted-foreground">
-                              <Clock className="h-3 w-3" /> {enquiry.startTime} - {enquiry.endTime}
+                            <div>
+                              <p className="font-bold text-primary">{contact.name}</p>
+                              <p className="text-xs text-muted-foreground">{contact.email}</p>
                             </div>
                           </div>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => handleDeleteSecurityContact(contact.id)}
+                            className="text-muted-foreground hover:text-red-600"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </>
-        ) : (
-          <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-dashed text-center space-y-4">
-            <Inbox className="h-12 w-12 text-muted-foreground opacity-20" />
-            <h3 className="text-lg font-bold text-muted-foreground">Your inbox is empty</h3>
-            <p className="text-sm text-muted-foreground max-w-xs">New booking enquiries from the Hub website will appear here automatically.</p>
-          </div>
-        )}
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-20 bg-muted/20 rounded-2xl border-2 border-dashed flex flex-col items-center gap-3">
+                      <ShieldCheck className="h-10 w-10 text-muted-foreground opacity-20" />
+                      <p className="text-sm text-muted-foreground">No security contacts added yet.</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
@@ -373,12 +430,7 @@ function KanbanCard({ enquiry, onUpdateStatus }: { enquiry: any, onUpdateStatus:
           <span className="text-[10px] font-mono text-muted-foreground uppercase">ID: {enquiry.id.substring(0, 6)}</span>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-6 w-6"
-                onClick={(e) => e.stopPropagation()}
-              >
+              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => e.stopPropagation()}>
                 <MoreVertical className="h-3 w-3" />
               </Button>
             </DropdownMenuTrigger>
@@ -421,27 +473,13 @@ function KanbanCard({ enquiry, onUpdateStatus }: { enquiry: any, onUpdateStatus:
         {isExpanded && (
            <div className="pt-2 border-t mt-2 space-y-3 animate-in fade-in slide-in-from-top-1">
               <div className="grid grid-cols-1 gap-2 text-[10px]">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Mail className="h-3 w-3" /> {enquiry.emailAddress}
-                </div>
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Phone className="h-3 w-3" /> {enquiry.phoneNumber}
-                </div>
-                <div className="flex items-start gap-2 text-muted-foreground">
-                  <MapPin className="h-3 w-3 mt-0.5" /> 
-                  <span>{enquiry.postalAddress}, {enquiry.postcode}</span>
-                </div>
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Users className="h-3 w-3" /> Attendance: {enquiry.estimatedAttendance}
-                </div>
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <FileText className="h-3 w-3" /> Contact: {enquiry.preferredContact}
-                </div>
-                <div className="flex items-center gap-2 text-muted-foreground">
-                   <Clock className="h-3 w-3" /> Submitted: {date.toLocaleString()}
-                </div>
+                <div className="flex items-center gap-2 text-muted-foreground"><Mail className="h-3 w-3" /> {enquiry.emailAddress}</div>
+                <div className="flex items-center gap-2 text-muted-foreground"><Phone className="h-3 w-3" /> {enquiry.phoneNumber}</div>
+                <div className="flex items-start gap-2 text-muted-foreground"><MapPin className="h-3 w-3 mt-0.5" /> <span>{enquiry.postalAddress}, {enquiry.postcode}</span></div>
+                <div className="flex items-center gap-2 text-muted-foreground"><Users className="h-3 w-3" /> Attendance: {enquiry.estimatedAttendance}</div>
+                <div className="flex items-center gap-2 text-muted-foreground"><FileText className="h-3 w-3" /> Contact: {enquiry.preferredContact}</div>
+                <div className="flex items-center gap-2 text-muted-foreground"><Clock className="h-3 w-3" /> Submitted: {date.toLocaleString()}</div>
               </div>
-              
               {enquiry.additionalRequirements && enquiry.additionalRequirements !== "None provided" && (
                 <div className="bg-amber-50 p-2 rounded text-[10px] space-y-1 border border-amber-100">
                   <p className="font-bold text-amber-800">Additional Requirements:</p>
@@ -450,38 +488,18 @@ function KanbanCard({ enquiry, onUpdateStatus }: { enquiry: any, onUpdateStatus:
               )}
            </div>
         )}
-
-        {!isExpanded && enquiry.additionalRequirements && enquiry.additionalRequirements !== "None provided" && (
-          <p className="text-[10px] italic text-muted-foreground line-clamp-1 mt-2 bg-amber-50 p-1 rounded">
-            "{enquiry.additionalRequirements}"
-          </p>
-        )}
       </div>
       
       <div className="px-4 py-2 border-t bg-muted/10 flex justify-between items-center">
-        <span className="text-[9px] text-muted-foreground font-medium uppercase">
-          {date.toLocaleDateString()}
-        </span>
+        <span className="text-[9px] text-muted-foreground font-medium uppercase">{date.toLocaleDateString()}</span>
         <div className="flex gap-1">
           {enquiry.status !== 'Confirmed' && (
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="h-6 w-6 text-green-600 hover:text-green-700 hover:bg-green-50"
-              onClick={(e) => { e.stopPropagation(); onUpdateStatus(enquiry.id, 'Confirmed'); }}
-              title="Confirm"
-            >
+            <Button variant="ghost" size="icon" className="h-6 w-6 text-green-600" onClick={(e) => { e.stopPropagation(); onUpdateStatus(enquiry.id, 'Confirmed'); }}>
               <CheckCircle2 className="h-4 w-4" />
             </Button>
           )}
           {enquiry.status === 'Pending' && (
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="h-6 w-6 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-              onClick={(e) => { e.stopPropagation(); onUpdateStatus(enquiry.id, 'Reviewed'); }}
-              title="Review"
-            >
+            <Button variant="ghost" size="icon" className="h-6 w-6 text-blue-600" onClick={(e) => { e.stopPropagation(); onUpdateStatus(enquiry.id, 'Reviewed'); }}>
               <ArrowRight className="h-4 w-4" />
             </Button>
           )}
