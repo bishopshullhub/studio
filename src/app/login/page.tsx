@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -29,10 +29,17 @@ const signupSchema = z.object({
 });
 
 export default function LoginPage() {
-  const { auth, user } = useFirebase();
+  const { auth, user, isUserLoading } = useFirebase();
   const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+
+  // Handle redirection in an effect to avoid updating the router during render
+  useEffect(() => {
+    if (user && !user.isAnonymous) {
+      router.push('/admin');
+    }
+  }, [user, router]);
 
   const loginForm = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -48,7 +55,6 @@ export default function LoginPage() {
     setLoading(true);
     try {
       initiateEmailSignIn(auth, values.email, values.password);
-      // Auth state change will be handled by the provider/router
       toast({ title: "Welcome back", description: "Signing you in..." });
     } catch (error) {
       toast({ variant: "destructive", title: "Login Failed", description: "Invalid credentials." });
@@ -69,9 +75,14 @@ export default function LoginPage() {
     }
   }
 
-  if (user && !user.isAnonymous) {
-    router.push('/admin');
-    return null;
+  // Show a loader if we're already logged in and waiting for the effect to redirect
+  if (isUserLoading || (user && !user.isAnonymous)) {
+    return (
+      <div className="min-h-[80vh] flex flex-col items-center justify-center bg-muted/30">
+        <Loader2 className="h-10 w-10 text-primary animate-spin mb-4" />
+        <p className="text-muted-foreground font-medium">Authenticating...</p>
+      </div>
+    );
   }
 
   return (
