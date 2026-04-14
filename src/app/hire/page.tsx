@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -211,11 +212,11 @@ ${submittedData.additionalRequirements}
         throw new Error("Clipboard API unavailable");
       }
     } catch (err) {
-      // Fallback: Just toast the failure, user can still see text in <pre>
+      // Catch permission errors or other clipboard failures
       toast({
         variant: "destructive",
         title: "Copy Unavailable",
-        description: "Your browser restricted clipboard access. Please manually copy the text below.",
+        description: "Your browser restricted clipboard access. Please manually select and copy the text.",
       });
     }
   };
