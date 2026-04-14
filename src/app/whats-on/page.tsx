@@ -2,10 +2,10 @@
 "use client";
 
 import { useState, useMemo, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Clock, Calendar, Loader2, Zap, CalendarDays, MapPin, ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
+import { Clock, Calendar, Loader2, Zap, CalendarDays, MapPin, ChevronLeft, ChevronRight, ExternalLink, ShoppingBag, Ticket, Heart } from 'lucide-react';
 import { getLiveCalendarEventsAction, LiveEvent } from '@/app/actions/get-calendar';
 import { format, isToday, parseISO, startOfWeek, addDays, eachDayOfInterval, isSameDay, addWeeks, subWeeks } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -202,28 +202,58 @@ export default function WhatsOnPage() {
           </div>
           <h2 className="text-4xl font-headline font-bold text-primary">Special Event Tickets</h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            Support the Hub and the village community by attending our special events. Book your tickets securely through our SumUp store below.
+            Support the Hub and the village community by attending our special events. Purchase your tickets securely through our SumUp store.
           </p>
         </div>
 
-        <div className="bg-white rounded-[2.5rem] overflow-hidden shadow-2xl border border-border relative">
-          <div className="w-full aspect-[4/3] md:aspect-video lg:h-[800px]">
-            <iframe 
-              src="https://bishopshullhub.sumupstore.com/" 
-              className="w-full h-full border-none"
-              title="Bishops Hull Hub Ticket Store"
-            />
-          </div>
-          <div className="p-6 bg-muted/30 border-t flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-sm text-muted-foreground italic">
-              Having trouble viewing the store? You can also browse directly in a new window.
-            </p>
-            <Button asChild variant="outline" className="shrink-0 gap-2 border-primary text-primary hover:bg-primary/5">
-              <a href="https://bishopshullhub.sumupstore.com/" target="_blank" rel="noopener noreferrer">
-                Open Store Externally <ExternalLink className="h-4 w-4" />
-              </a>
-            </Button>
-          </div>
+        <div className="max-w-4xl mx-auto">
+          <Card className="border-none shadow-2xl bg-white overflow-hidden rounded-[2.5rem] border border-border">
+            <CardContent className="p-0">
+              <div className="grid grid-cols-1 lg:grid-cols-2">
+                <div className="p-8 md:p-12 space-y-8 flex flex-col justify-center">
+                  <div className="space-y-4">
+                    <h3 className="text-2xl md:text-3xl font-headline font-bold text-primary">Bishops Hull Hub Store</h3>
+                    <p className="text-muted-foreground leading-relaxed">
+                      Visit our dedicated SumUp store to browse tickets for upcoming fundraisers, village events, and commemorative items.
+                    </p>
+                  </div>
+
+                  <div className="space-y-4">
+                    {[
+                      { icon: Ticket, text: "One-off event tickets" },
+                      { icon: Heart, text: "Donations & Fundraisers" },
+                      { icon: ShoppingBag, text: "Commemorative items" },
+                    ].map((item, idx) => (
+                      <div key={idx} className="flex items-center gap-3 text-sm font-medium text-muted-foreground">
+                        <div className="p-2 bg-primary/5 rounded-lg text-primary">
+                          <item.icon className="h-5 w-5" />
+                        </div>
+                        {item.text}
+                      </div>
+                    ))}
+                  </div>
+
+                  <Button asChild size="lg" className="w-full sm:w-fit bg-primary hover:bg-primary/90 rounded-2xl h-14 px-8 text-lg shadow-xl">
+                    <a href="https://bishopshullhub.sumupstore.com/" target="_blank" rel="noopener noreferrer" className="gap-3">
+                      Visit SumUp Store <ExternalLink className="h-5 w-5" />
+                    </a>
+                  </Button>
+                </div>
+                <div className="bg-primary/5 p-8 flex items-center justify-center relative min-h-[300px] hidden lg:flex">
+                  <div className="absolute inset-0 opacity-10 pointer-events-none overflow-hidden">
+                    <ShoppingBag className="w-64 h-64 -rotate-12 -translate-x-12 translate-y-12" />
+                  </div>
+                  <div className="text-center space-y-6 relative z-10">
+                    <div className="bg-white p-8 rounded-3xl shadow-lg border border-primary/10 inline-block">
+                      <ShoppingBag className="h-16 w-16 text-primary mx-auto mb-4" />
+                      <p className="font-bold text-primary">Secure Payments</p>
+                      <p className="text-xs text-muted-foreground">Powered by SumUp</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </section>
     </div>
