@@ -36,15 +36,19 @@ export async function getLiveCalendarEventsAction() {
         const end = new Date(event.end);
 
         // Filter for events in the current week (or just general upcoming)
-        // We'll return everything and let the client filter if needed, 
-        // but limiting to a reasonable range is better for performance.
         if (isWithinInterval(start, { start: weekStart, end: addDays(weekEnd, 14) })) {
+          // Clean descriptions: Remove Hallmaster booking links and redundant URLs
+          const rawDescription = event.description || '';
+          const cleanedDescription = rawDescription
+            .replace(/https:\/\/v2\.hallmaster\.co\.uk\/Scheduler\/ViewBooking\/\S+/g, '')
+            .trim();
+
           processedEvents.push({
             id: event.uid,
             summary: event.summary,
             start: start.toISOString(),
             end: end.toISOString(),
-            description: event.description || '',
+            description: cleanedDescription,
             location: event.location || '',
             dayOfWeek: format(start, 'EEEE'),
           });
