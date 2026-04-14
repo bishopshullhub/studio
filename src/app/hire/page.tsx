@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -16,8 +17,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
-import { useFirebase, addDocumentNonBlocking } from '@/firebase';
-import { collection } from 'firebase/firestore';
+import { useFirebase, setDocumentNonBlocking, initiateAnonymousSignIn } from '@/firebase';
+import { doc } from 'firebase/firestore';
 
 const formSchema = z.object({
   // Step 2: Policy Acknowledgement
@@ -62,7 +63,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 export default function HirePage() {
   const { toast } = useToast();
-  const { firestore } = useFirebase();
+  const { firestore, auth, user } = useFirebase();
   const [step, setStep] = useState(1);
   const [minDateStr, setMinDateStr] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -70,10 +71,15 @@ export default function HirePage() {
   const totalSteps = 5;
 
   useEffect(() => {
+    // Ensure user is signed in anonymously to satisfy security rules
+    if (!user && auth) {
+      initiateAnonymousSignIn(auth);
+    }
+
     const date = new Date();
     date.setDate(date.getDate() + 14);
     setMinDateStr(date.toISOString().split('T')[0]);
-  }, []);
+  }, [user, auth]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -149,8 +155,9 @@ export default function HirePage() {
       status: 'Pending'
     };
 
-    const colRef = collection(firestore, 'booking_enquiries');
-    addDocumentNonBlocking(colRef, enquiryData);
+    // Use setDocumentNonBlocking to ensure ID field matches path as per security rules
+    const docRef = doc(firestore, 'booking_enquiries', enquiryId);
+    setDocumentNonBlocking(docRef, enquiryData, {});
 
     setSubmittedData(enquiryData);
     setIsSubmitted(true);
@@ -191,13 +198,14 @@ ${submittedData.additionalRequirements}
 
   const handleCopy = async () => {
     try {
-      if (navigator.clipboard && window.isSecureContext) {
+      if (typeof navigator !== 'undefined' && navigator.clipboard && window.isSecureContext) {
         await navigator.clipboard.writeText(getSummaryText());
         toast({ title: "Copied", description: "Enquiry text copied to clipboard." });
       } else {
         throw new Error("Clipboard API unavailable");
       }
     } catch (err) {
+      console.warn("Clipboard copy blocked or failed:", err);
       toast({
         variant: "destructive",
         title: "Copy Failed",
