@@ -2,19 +2,24 @@
 "use client";
 
 import { useState, useMemo, useEffect } from 'react';
-import { DAYS } from '@/lib/schedule-data';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Clock, Calendar, Loader2, Zap, CalendarDays, ExternalLink, MapPin } from 'lucide-react';
+import { Clock, Calendar, Loader2, Zap, CalendarDays, ExternalLink, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
 import { getLiveCalendarEventsAction, LiveEvent } from '@/app/actions/get-calendar';
-import { format, isToday, parseISO } from 'date-fns';
+import { format, isToday, parseISO, startOfWeek, addDays, eachDayOfInterval, isSameDay, addWeeks, subWeeks } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 export default function WhatsOnPage() {
-  const [selectedDay, setSelectedDay] = useState(format(new Date(), 'EEEE'));
+  const [referenceDate, setReferenceDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [liveEvents, setLiveEvents] = useState<LiveEvent[]>([]);
   const [isLiveLoading, setIsLiveLoading] = useState(true);
+
+  // Calculate the week bounds based on the reference date
+  const weekStart = useMemo(() => startOfWeek(referenceDate, { weekStartsOn: 1 }), [referenceDate]);
+  const weekEnd = useMemo(() => addDays(weekStart, 6), [weekStart]);
+  const daysInWeek = useMemo(() => eachDayOfInterval({ start: weekStart, end: weekEnd }), [weekStart, weekEnd]);
 
   // Fetch Live iCal Feed
   useEffect(() => {
@@ -29,13 +34,28 @@ export default function WhatsOnPage() {
     fetchLive();
   }, []);
 
+  // Filter events for the selected day
   const dailyLiveEvents = useMemo(() => {
-    return liveEvents.filter(e => e.dayOfWeek === selectedDay);
-  }, [liveEvents, selectedDay]);
+    return liveEvents.filter(event => isSameDay(parseISO(event.start), selectedDate));
+  }, [liveEvents, selectedDate]);
 
-  const isCurrentDaySelected = useMemo(() => {
-    return selectedDay === format(new Date(), 'EEEE');
-  }, [selectedDay]);
+  const handlePrevWeek = () => {
+    const newRef = subWeeks(referenceDate, 1);
+    setReferenceDate(newRef);
+    setSelectedDate(startOfWeek(newRef, { weekStartsOn: 1 }));
+  };
+
+  const handleNextWeek = () => {
+    const newRef = addWeeks(referenceDate, 1);
+    setReferenceDate(newRef);
+    setSelectedDate(startOfWeek(newRef, { weekStartsOn: 1 }));
+  };
+
+  const handleToday = () => {
+    const today = new Date();
+    setReferenceDate(today);
+    setSelectedDate(today);
+  };
 
   return (
     <div className="container mx-auto px-4 py-16 space-y-12">
@@ -45,51 +65,89 @@ export default function WhatsOnPage() {
         </div>
         <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary">What's On</h1>
         <p className="text-xl text-muted-foreground leading-relaxed">
-          View all current bookings and community activities happening at the Hub. This schedule is synced live with our Hallmaster booking system.
+          Explore the live schedule for the Bishops Hull Hub. Select a week and day to see specific hall bookings and community events.
         </p>
       </div>
 
-      <div className="bg-white p-4 rounded-3xl shadow-sm border">
-        <div className="w-full overflow-x-auto pb-2 scrollbar-hide">
-          <Tabs value={selectedDay} onValueChange={setSelectedDay} className="w-full">
-            <TabsList className="bg-muted w-full md:w-auto h-auto p-1 flex">
-              {DAYS.map(day => (
-                <TabsTrigger 
-                  key={day} 
-                  value={day} 
-                  className="flex-1 md:flex-none px-6 py-3 text-sm font-bold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-                >
-                  {day}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
+      {/* Week & Day Selector */}
+      <div className="bg-white p-6 rounded-[2rem] shadow-xl border border-border space-y-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="space-y-1">
+            <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Week Commencing</h2>
+            <p className="text-2xl font-headline font-bold text-primary">
+              {format(weekStart, 'MMMM do, yyyy')}
+            </p>
+          </div>
+          <div className="flex items-center gap-2 bg-muted/50 p-1.5 rounded-2xl">
+            <Button variant="ghost" size="icon" onClick={handlePrevWeek} className="rounded-xl">
+              <ChevronLeft className="h-5 w-5" />
+            </Button>
+            <Button variant="secondary" size="sm" onClick={handleToday} className="px-4 font-bold rounded-xl bg-white shadow-sm">
+              Today
+            </Button>
+            <Button variant="ghost" size="icon" onClick={handleNextWeek} className="rounded-xl">
+              <ChevronRight className="h-5 w-5" />
+            </Button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-4 md:grid-cols-7 gap-2 md:gap-4">
+          {daysInWeek.map((day) => {
+            const isSelected = isSameDay(day, selectedDate);
+            const isCurrentDay = isToday(day);
+            
+            return (
+              <button
+                key={day.toISOString()}
+                onClick={() => setSelectedDate(day)}
+                className={cn(
+                  "flex flex-col items-center justify-center py-4 px-2 rounded-2xl transition-all duration-200 border-2",
+                  isSelected 
+                    ? "bg-primary border-primary text-primary-foreground shadow-lg scale-105 z-10" 
+                    : "bg-transparent border-transparent hover:bg-muted text-muted-foreground",
+                  !isSelected && isCurrentDay && "border-accent/30 bg-accent/5"
+                )}
+              >
+                <span className={cn("text-[10px] font-bold uppercase tracking-widest mb-1", isSelected ? "text-primary-foreground/70" : "text-muted-foreground")}>
+                  {format(day, 'EEE')}
+                </span>
+                <span className="text-xl font-bold font-headline">
+                  {format(day, 'd')}
+                </span>
+                {isCurrentDay && !isSelected && (
+                  <div className="w-1 h-1 bg-accent rounded-full mt-1" />
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
 
       <div className="space-y-8">
         <div className="flex items-center justify-between border-b pb-4">
-          <h2 className="text-2xl font-headline font-bold text-primary flex items-center gap-3">
-            {selectedDay}&apos;s Schedule
-            {isCurrentDaySelected && (
-              <Badge className="bg-accent text-primary-foreground hover:bg-accent">TODAY</Badge>
-            )}
-          </h2>
-          <p className="text-sm text-muted-foreground flex items-center gap-2">
+          <div className="space-y-1">
+            <h2 className="text-2xl font-headline font-bold text-primary flex items-center gap-3">
+              {format(selectedDate, 'EEEE, MMMM do')}
+              {isToday(selectedDate) && (
+                <Badge className="bg-accent text-primary-foreground hover:bg-accent">TODAY</Badge>
+              )}
+            </h2>
+          </div>
+          <p className="text-sm text-muted-foreground flex items-center gap-2 hidden sm:flex">
             <CalendarDays className="h-4 w-4" />
-            {dailyLiveEvents.length} events found
+            {dailyLiveEvents.length} events scheduled
           </p>
         </div>
         
         {isLiveLoading ? (
           <div className="py-24 text-center">
             <Loader2 className="h-12 w-12 text-primary animate-spin mx-auto mb-4" />
-            <p className="text-muted-foreground font-medium">Syncing with live Hallmaster calendar...</p>
+            <p className="text-muted-foreground font-medium">Fetching live Hallmaster data...</p>
           </div>
         ) : dailyLiveEvents.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {dailyLiveEvents.map((event) => (
-              <Card key={event.id} className="border-none shadow-lg bg-white overflow-hidden group hover:shadow-xl transition-all duration-300 rounded-3xl flex flex-col">
+              <Card key={event.id} className="border-none shadow-lg bg-white overflow-hidden group hover:shadow-xl transition-all duration-300 rounded-[2rem] flex flex-col">
                 <div className="p-8 space-y-4 flex-1">
                   <div className="flex justify-between items-start">
                     <Badge className="bg-primary/10 text-primary hover:bg-primary/20 border-none px-3 py-1 font-bold text-[10px] uppercase">
@@ -106,7 +164,7 @@ export default function WhatsOnPage() {
                       {event.summary}
                     </h3>
                     {event.description && (
-                      <p className="text-muted-foreground text-sm leading-relaxed line-clamp-3">
+                      <p className="text-muted-foreground text-sm leading-relaxed line-clamp-3 italic">
                         {event.description}
                       </p>
                     )}
@@ -120,7 +178,7 @@ export default function WhatsOnPage() {
                 </div>
                 <div className="px-8 py-4 bg-muted/30 border-t flex justify-end group-hover:bg-primary/5 transition-colors">
                   <Button variant="ghost" size="sm" className="text-primary font-bold gap-2" asChild>
-                    <a href="/hire#booking-form">Book this space <ExternalLink className="h-3 w-3" /></a>
+                    <a href="/hire#booking-form">Inquire about this date <ExternalLink className="h-3 w-3" /></a>
                   </Button>
                 </div>
               </Card>
@@ -129,13 +187,13 @@ export default function WhatsOnPage() {
         ) : (
           <div className="py-20 text-center space-y-6 bg-muted/20 rounded-[3rem] border-2 border-dashed max-w-4xl mx-auto">
             <Calendar className="h-16 w-16 text-muted-foreground mx-auto opacity-20" />
-            <div className="space-y-2">
-              <h3 className="text-xl font-bold text-muted-foreground">No one-off bookings scheduled for {selectedDay}</h3>
+            <div className="space-y-2 px-4">
+              <h3 className="text-xl font-bold text-muted-foreground">No bookings found for this day</h3>
               <p className="text-sm text-muted-foreground max-w-xs mx-auto">
-                The hall might be available for community use or last-minute hire!
+                The hall might be free for a last-minute booking! Check our availability to confirm.
               </p>
             </div>
-            <Button asChild className="bg-primary hover:bg-primary/90 rounded-2xl">
+            <Button asChild className="bg-primary hover:bg-primary/90 rounded-2xl px-8 shadow-lg">
               <a href="/hire#booking-form">Check Availability</a>
             </Button>
           </div>
@@ -147,14 +205,13 @@ export default function WhatsOnPage() {
           <Badge variant="secondary" className="bg-white/20 text-white border-none px-4 py-1">FUNDRAISERS & SPECIALS</Badge>
           <h2 className="text-4xl font-headline font-bold">Special Event Tickets</h2>
           <p className="text-lg opacity-90 leading-relaxed">
-            Looking for fundraiser or seasonal event tickets? Purchase securely through our official ticketing partner to support the Hub.
+            Don't miss out on our seasonal fundraisers and special village events. Purchase your tickets securely online.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-            <Button size="lg" variant="secondary" className="px-8 shadow-lg text-primary font-bold">
-              Browse All Tickets <ExternalLink className="ml-2 h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="lg" className="rounded-xl border-white/20 text-white hover:bg-white/10">
-              View Past Events
+            <Button size="lg" variant="secondary" className="px-8 shadow-lg text-primary font-bold rounded-2xl h-14" asChild>
+              <a href="https://v2.hallmaster.co.uk/Scheduler/View/10228" target="_blank" rel="noopener noreferrer">
+                Browse All Tickets <ExternalLink className="ml-2 h-4 w-4" />
+              </a>
             </Button>
           </div>
         </div>
