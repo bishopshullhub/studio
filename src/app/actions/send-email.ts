@@ -1,4 +1,3 @@
-
 'use server';
 
 import { formatEnquiryEmail } from '@/ai/flows/format-enquiry-email-flow';
@@ -18,7 +17,7 @@ export async function sendEnquiryEmailAction(enquiryData: any) {
     // 2. Send the real email if an API key is present
     if (process.env.RESEND_API_KEY && process.env.RESEND_API_KEY !== 're_your_api_key_here') {
       const { data, error } = await resend.emails.send({
-        from: 'Bishops Hull Hub Enquiry <onboarding@resend.dev>',
+        from: 'onboarding@resend.dev',
         to: 'bishopshullhub@gmail.com',
         subject: formattedEmail.subject,
         html: formattedEmail.htmlBody,
@@ -34,6 +33,7 @@ export async function sendEnquiryEmailAction(enquiryData: any) {
     } else {
       console.log('Email content generated, but RESEND_API_KEY is not configured. Check .env file.');
       console.log('Subject:', formattedEmail.subject);
+      console.log('Plain Text Body:', formattedEmail.textBody);
     }
     
     return { 
