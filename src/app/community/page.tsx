@@ -1,9 +1,8 @@
-
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { Heart, Landmark, Sprout, Footprints, ExternalLink, Eye, Music, Wind, HandPointer, TreePine, Accessibility } from 'lucide-react';
+import { Heart, Landmark, Sprout, Footprints, ExternalLink, Eye, Music, Wind, Hand, TreePine, Accessibility } from 'lucide-react';
 
 export default function CommunityPage() {
   const gardenImages = PlaceHolderImages.filter(img => img.id.startsWith('garden-'));
@@ -56,7 +55,7 @@ export default function CommunityPage() {
         <div className="relative rounded-[3rem] overflow-hidden bg-primary text-primary-foreground shadow-2xl">
           <div className="absolute inset-0 opacity-20 z-0">
              <Image 
-                src={sensoryMain?.imageUrl || ""} 
+                src={sensoryMain?.imageUrl || "https://picsum.photos/seed/sensory-1/1200/600"} 
                 alt="Sensory Trail" 
                 fill 
                 className="object-cover"
@@ -100,7 +99,7 @@ export default function CommunityPage() {
             },
             {
               title: "Touch",
-              icon: HandPointer,
+              icon: Hand,
               desc: "Explore tactile markers, varied path textures, and smooth natural wood installations.",
               color: "bg-purple-50 text-purple-700"
             }
@@ -120,7 +119,7 @@ export default function CommunityPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div className="relative aspect-video rounded-[2.5rem] overflow-hidden shadow-xl">
             <Image 
-              src={sensoryWillow?.imageUrl || ""} 
+              src={sensoryWillow?.imageUrl || "https://picsum.photos/seed/sensory-2/600/400"} 
               alt="Willow Tunnel" 
               fill 
               className="object-cover"
