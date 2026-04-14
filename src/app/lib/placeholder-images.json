@@ -1,3 +1,4 @@
+
 {
   "placeholderImages": [
     {
@@ -41,6 +42,18 @@
       "description": "Example of a bouncy castle inside the main hall",
       "imageUrl": "https://bhhub.co.uk/wp-content/uploads/2022/07/Bouncy-Castle-Example2-1024x768.jpg",
       "imageHint": "bouncy castle hall"
+    },
+    {
+      "id": "sensory-trail-main",
+      "description": "The entrance to the award-winning sensory trail",
+      "imageUrl": "https://picsum.photos/seed/sensory-1/1200/600",
+      "imageHint": "sensory garden"
+    },
+    {
+      "id": "sensory-willow",
+      "description": "The living willow tunnel on the sensory trail",
+      "imageUrl": "https://picsum.photos/seed/sensory-2/600/400",
+      "imageHint": "willow tunnel"
     }
   ]
 }
