@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo } from 'react';
@@ -10,20 +9,26 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { aiScheduleDescriptionAssistant } from '@/ai/flows/ai-schedule-description-assistant';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Sparkles, LayoutDashboard, PlusCircle, Settings, LogOut, CheckCircle, Inbox, Calendar, User, Mail, Phone, Clock, FileText } from 'lucide-react';
+import { Loader2, Sparkles, LayoutDashboard, PlusCircle, Settings, LogOut, CheckCircle, Inbox, Calendar, User, Mail, Phone, Clock, FileText, ShieldAlert, Key } from 'lucide-react';
 import { CATEGORIES, DAYS } from '@/lib/schedule-data';
-import { useFirebase, setDocumentNonBlocking, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirebase, setDocumentNonBlocking, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { doc, collection, query, orderBy } from 'firebase/firestore';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function AdminPortal() {
   const { toast } = useToast();
-  const { firestore } = useFirebase();
+  const { firestore, user, isUserLoading } = useFirebase();
   const [loading, setLoading] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [activeTab, setActiveTab] = useState('add-activity');
   
+  // Status check for Admin role in Firestore
+  const adminDocRef = useMemoFirebase(() => {
+    return user ? doc(firestore, 'admins', user.uid) : null;
+  }, [firestore, user]);
+  
+  const { data: adminRecord, isLoading: checkingAdmin } = useDoc(adminDocRef);
+
   const [formData, setFormData] = useState({
     activityName: '',
     category: '',
@@ -37,10 +42,11 @@ export default function AdminPortal() {
   });
   const [generatedDescription, setGeneratedDescription] = useState('');
 
-  // Fetch Enquiries
+  // Fetch Enquiries - Only if the user is confirmed as an admin
   const enquiriesQuery = useMemoFirebase(() => {
+    if (!adminRecord) return null;
     return query(collection(firestore, 'booking_enquiries'), orderBy('submissionDateTime', 'desc'));
-  }, [firestore]);
+  }, [firestore, adminRecord]);
   
   const { data: enquiries, isLoading: loadingEnquiries } = useCollection(enquiriesQuery);
 
@@ -146,6 +152,50 @@ export default function AdminPortal() {
       setPublishing(false);
     }
   };
+
+  if (isUserLoading || checkingAdmin) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-muted/30">
+        <Loader2 className="h-10 w-10 text-primary animate-spin mb-4" />
+        <p className="text-muted-foreground font-medium">Verifying Administrative Status...</p>
+      </div>
+    );
+  }
+
+  // If user is signed in but doesn't exist in the 'admins' collection
+  if (!adminRecord) {
+    return (
+      <div className="min-h-screen bg-muted/30 flex items-center justify-center p-4">
+        <Card className="max-w-md w-full border-none shadow-2xl">
+          <CardHeader className="text-center space-y-2">
+            <div className="mx-auto p-4 bg-amber-100 text-amber-600 rounded-full w-fit">
+              <ShieldAlert className="h-12 w-12" />
+            </div>
+            <CardTitle className="text-2xl font-headline text-primary">Access Restricted</CardTitle>
+            <CardDescription>
+              Your account does not have administrative privileges for the Bishops Hull Hub Portal.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="p-4 bg-muted rounded-xl space-y-2">
+              <div className="flex items-center gap-2 text-sm font-bold text-muted-foreground uppercase tracking-widest">
+                <Key className="h-4 w-4" /> Your Unique ID
+              </div>
+              <code className="block bg-white p-3 rounded border border-border text-xs break-all font-mono">
+                {user?.uid}
+              </code>
+            </div>
+            <p className="text-sm text-center text-muted-foreground leading-relaxed">
+              To grant access, please add this ID to the <strong>admins</strong> collection in the Firebase Console.
+            </p>
+            <Button asChild variant="outline" className="w-full">
+              <a href="/">Return to Public Site</a>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-muted/30">

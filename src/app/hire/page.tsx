@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle2, Wifi, Coffee, Users, Car, MapPin, User, Calendar, ClipboardCheck, ArrowRight, ArrowLeft, Info, AlertTriangle, CheckSquare, Mail, Phone as PhoneIcon, Clock, Check, Loader2 } from 'lucide-react';
+import { CheckCircle2, Wifi, Coffee, Users, Car, MapPin, User, Calendar, ClipboardCheck, ArrowRight, ArrowLeft, Info, AlertTriangle, CheckSquare, Mail, Phone as PhoneIcon, Clock, Check, Loader2, Copy } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -150,11 +150,9 @@ export default function HirePage() {
     };
 
     try {
-      // 1. Save to Firestore
       const docRef = doc(firestore, 'booking_enquiries', enquiryId);
       setDocumentNonBlocking(docRef, enquiryData, {});
 
-      // 2. Trigger Server Action to process/send email
       await sendEnquiryEmailAction(enquiryData);
 
       setSubmittedData(enquiryData);
@@ -204,18 +202,20 @@ ${submittedData.additionalRequirements}
   };
 
   const handleCopy = async () => {
+    const text = getSummaryText();
     try {
       if (typeof navigator !== 'undefined' && navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(getSummaryText());
+        await navigator.clipboard.writeText(text);
         toast({ title: "Copied", description: "Enquiry text copied to clipboard." });
       } else {
         throw new Error("Clipboard API unavailable");
       }
     } catch (err) {
+      // Fallback: Just toast the failure, user can still see text in <pre>
       toast({
         variant: "destructive",
-        title: "Copy Failed",
-        description: "Please manually select and copy the text below.",
+        title: "Copy Unavailable",
+        description: "Your browser restricted clipboard access. Please manually copy the text below.",
       });
     }
   };
@@ -235,7 +235,7 @@ ${submittedData.additionalRequirements}
             <div className="space-y-4">
               <h2 className="text-xl font-bold text-primary border-b pb-2">Your Enquiry Details</h2>
               <p className="text-sm text-muted-foreground">This information has been recorded and an email notification has been triggered for <strong>bishopshullhub@gmail.com</strong>.</p>
-              <pre className="bg-muted p-6 rounded-xl text-sm font-mono overflow-auto whitespace-pre-wrap border border-border">
+              <pre className="bg-muted p-6 rounded-xl text-sm font-mono overflow-auto whitespace-pre-wrap border border-border select-all">
                 {getSummaryText()}
               </pre>
             </div>
@@ -248,8 +248,8 @@ ${submittedData.additionalRequirements}
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
-              <Button onClick={handleCopy} className="flex-1" variant="outline">
-                Copy Enquiry Text
+              <Button onClick={handleCopy} className="flex-1 gap-2" variant="outline">
+                <Copy className="h-4 w-4" /> Copy Summary
               </Button>
               <Button asChild className="flex-1 bg-primary">
                 <Link href="/">Return to Home</Link>
@@ -274,7 +274,6 @@ ${submittedData.additionalRequirements}
 
       <div className="container mx-auto px-4 -mt-10 space-y-12">
         <div className="max-w-4xl mx-auto space-y-12">
-          {/* Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
               { label: "Hourly Rate", value: "£18.00", sub: "per hour" },
@@ -588,7 +587,6 @@ ${submittedData.additionalRequirements}
             </div>
           </section>
 
-          {/* Additional Info Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <Card className="border-none shadow-lg bg-white">
               <CardHeader><CardTitle className="text-xl text-primary font-headline">Facility Overview</CardTitle></CardHeader>
