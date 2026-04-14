@@ -2,7 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CalendarDays, Ticket, Heart, Map, ArrowRight } from 'lucide-react';
+import { CalendarDays, Ticket, Heart, HelpCircle, ArrowRight } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 export default function HomePage() {
@@ -62,10 +62,10 @@ export default function HomePage() {
               color: "bg-white"
             },
             {
-              title: "Sensory Trail",
-              desc: "Discover our award-winning sensory trail for all abilities.",
-              icon: Map,
-              href: "/community#sensory-trail",
+              title: "Common Questions",
+              desc: "Find answers about venue hire, capacities, and facilities.",
+              icon: HelpCircle,
+              href: "/faq",
               color: "bg-white"
             }
           ].map((item, idx) => (
