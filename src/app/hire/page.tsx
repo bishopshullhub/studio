@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -11,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle2, Wifi, Coffee, Users, Car, MapPin, User, Calendar, ClipboardCheck, ArrowRight, ArrowLeft, Info, AlertTriangle, CheckSquare, Mail, Phone as PhoneIcon, Clock, Check } from 'lucide-react';
+import { CheckCircle2, Wifi, Coffee, Users, Car, MapPin, User, Calendar, ClipboardCheck, ArrowRight, ArrowLeft, Info, AlertTriangle, CheckSquare, Mail, Phone as PhoneIcon, Clock, Check, Loader2 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -19,12 +18,10 @@ import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { useFirebase, setDocumentNonBlocking, initiateAnonymousSignIn } from '@/firebase';
 import { doc } from 'firebase/firestore';
+import { sendEnquiryEmailAction } from '@/app/actions/send-email';
 
 const formSchema = z.object({
-  // Step 2: Policy Acknowledgement
   acknowledgedPolicies: z.boolean().refine(v => v === true, "Please acknowledge the policies to continue"),
-  
-  // Step 3: Contact
   name: z.string().min(2, "Name is required"),
   email: z.string().email("Invalid email address"),
   address: z.string().min(5, "Postal address is required"),
@@ -33,8 +30,6 @@ const formSchema = z.object({
   preferredContact: z.enum(["Email", "Phone"], {
     required_error: "Please select a preferred contact method",
   }),
-  
-  // Step 4: Event Details
   date: z.string().min(1, "Date is required").refine((val) => {
     if (!val) return false;
     const selectedDate = new Date(val);
@@ -46,8 +41,6 @@ const formSchema = z.object({
   startTime: z.string().min(1, "Start time required"),
   endTime: z.string().min(1, "End time required"),
   attendance: z.string().min(1, "Est. attendance required"),
-  
-  // Step 5: Requirements
   typeOfEvent: z.string().min(2, "Event type is required"),
   requirements: z.string().optional(),
   agreedToTerms: z.boolean().refine(v => v === true, "You must agree to the terms"),
@@ -67,11 +60,11 @@ export default function HirePage() {
   const [step, setStep] = useState(1);
   const [minDateStr, setMinDateStr] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedData, setSubmittedData] = useState<any>(null);
   const totalSteps = 5;
 
   useEffect(() => {
-    // Ensure user is signed in anonymously to satisfy security rules
     if (!user && auth) {
       initiateAnonymousSignIn(auth);
     }
@@ -135,7 +128,8 @@ export default function HirePage() {
 
   const prevStep = () => setStep(prev => Math.max(prev - 1, 1));
 
-  function onSubmit(values: FormValues) {
+  async function onSubmit(values: FormValues) {
+    setIsSubmitting(true);
     const enquiryId = Math.random().toString(36).substring(7);
     const enquiryData = {
       id: enquiryId,
@@ -155,17 +149,30 @@ export default function HirePage() {
       status: 'Pending'
     };
 
-    // Use setDocumentNonBlocking to ensure ID field matches path as per security rules
-    const docRef = doc(firestore, 'booking_enquiries', enquiryId);
-    setDocumentNonBlocking(docRef, enquiryData, {});
+    try {
+      // 1. Save to Firestore
+      const docRef = doc(firestore, 'booking_enquiries', enquiryId);
+      setDocumentNonBlocking(docRef, enquiryData, {});
 
-    setSubmittedData(enquiryData);
-    setIsSubmitted(true);
-    
-    toast({
-      title: "Enquiry Sent",
-      description: "We've received your booking enquiry and will be in touch shortly.",
-    });
+      // 2. Trigger Server Action to process/send email
+      await sendEnquiryEmailAction(enquiryData);
+
+      setSubmittedData(enquiryData);
+      setIsSubmitted(true);
+      
+      toast({
+        title: "Enquiry Sent",
+        description: "We've received your booking enquiry and will be in touch shortly.",
+      });
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to submit enquiry. Please try again.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   const progress = (step / totalSteps) * 100;
@@ -205,7 +212,6 @@ ${submittedData.additionalRequirements}
         throw new Error("Clipboard API unavailable");
       }
     } catch (err) {
-      console.warn("Clipboard copy blocked or failed:", err);
       toast({
         variant: "destructive",
         title: "Copy Failed",
@@ -228,7 +234,7 @@ ${submittedData.additionalRequirements}
           <CardContent className="p-8 space-y-6">
             <div className="space-y-4">
               <h2 className="text-xl font-bold text-primary border-b pb-2">Your Enquiry Details</h2>
-              <p className="text-sm text-muted-foreground">This information has been sent to our bookings secretary at <strong>bishopshullhub@gmail.com</strong>.</p>
+              <p className="text-sm text-muted-foreground">This information has been recorded and an email notification has been triggered for <strong>bishopshullhub@gmail.com</strong>.</p>
               <pre className="bg-muted p-6 rounded-xl text-sm font-mono overflow-auto whitespace-pre-wrap border border-border">
                 {getSummaryText()}
               </pre>
@@ -237,16 +243,12 @@ ${submittedData.additionalRequirements}
             <div className="bg-accent/10 p-4 rounded-xl flex gap-3 items-start">
               <Info className="h-5 w-5 text-primary shrink-0 mt-0.5" />
               <p className="text-sm text-muted-foreground italic">
-                A copy of this enquiry has been saved to our database. Our volunteer bookings secretary will review it and contact you via your preferred method shortly.
+                Our volunteer bookings secretary will review your request and contact you via your preferred method shortly.
               </p>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
-              <Button 
-                onClick={handleCopy} 
-                className="flex-1"
-                variant="outline"
-              >
+              <Button onClick={handleCopy} className="flex-1" variant="outline">
                 Copy Enquiry Text
               </Button>
               <Button asChild className="flex-1 bg-primary">
@@ -262,448 +264,363 @@ ${submittedData.additionalRequirements}
   return (
     <div className="pb-20">
       <section className="bg-primary text-primary-foreground py-20">
-        <div className="container mx-auto px-4">
-          <div className="max-w-3xl space-y-6">
-            <h1 className="text-4xl md:text-5xl font-headline font-bold">Hire the Hub</h1>
-            <p className="text-xl opacity-90 leading-relaxed">
-              Our modern, flexible space is available for private functions, corporate events, 
-              classes, and community groups. Modern facilities in a tranquil village setting.
-            </p>
-          </div>
+        <div className="container mx-auto px-4 text-center">
+          <h1 className="text-4xl md:text-5xl font-headline font-bold mb-4">Hire the Hub</h1>
+          <p className="text-xl opacity-90 max-w-2xl mx-auto">
+            Modern facilities for private functions, corporate events, and community groups.
+          </p>
         </div>
       </section>
 
       <div className="container mx-auto px-4 -mt-10 space-y-12">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[
-            { label: "Hourly Rate", value: "£18.00", sub: "per hour" },
-            { label: "Full Day Cap", value: "£140.00", sub: "over 8 hours" },
-            { label: "Day Deposit", value: "£50.00", sub: "refundable" },
-            { label: "Evening Deposit", value: "£100.00", sub: "refundable" },
-          ].map((item, idx) => (
-            <Card key={idx} className="border-none shadow-lg bg-white overflow-hidden">
-              <CardContent className="p-6 flex flex-col items-center justify-center text-center space-y-1">
-                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{item.label}</span>
-                <span className="text-3xl font-bold text-primary">{item.value}</span>
-                <span className="text-xs italic text-muted-foreground">{item.sub}</span>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <div className="max-w-4xl mx-auto space-y-12">
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { label: "Hourly Rate", value: "£18.00", sub: "per hour" },
+              { label: "Full Day Cap", value: "£140.00", sub: "over 8 hours" },
+              { label: "Day Deposit", value: "£50.00", sub: "refundable" },
+              { label: "Evening Deposit", value: "£100.00", sub: "refundable" },
+            ].map((item, idx) => (
+              <Card key={idx} className="border-none shadow-lg bg-white overflow-hidden">
+                <CardContent className="p-6 flex flex-col items-center justify-center text-center space-y-1">
+                  <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{item.label}</span>
+                  <span className="text-3xl font-bold text-primary">{item.value}</span>
+                  <span className="text-xs italic text-muted-foreground">{item.sub}</span>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
 
-        <section id="booking-form" className="scroll-mt-24">
-          <div className="bg-white rounded-3xl p-8 shadow-xl border border-border">
-            <div className="mb-10 space-y-4">
-              <div className="flex justify-between items-end mb-2">
-                <div>
-                  <span className="text-xs font-bold uppercase tracking-widest text-primary">Step {step} of {totalSteps}</span>
-                  <h2 className="text-2xl font-headline font-bold text-primary">
-                    {step === 1 && "Pricing & Availability"}
-                    {step === 2 && "Venue Policies"}
-                    {step === 3 && "Contact Information"}
-                    {step === 4 && "Event Details"}
-                    {step === 5 && "Additional Requirements"}
-                  </h2>
+          <section id="booking-form" className="scroll-mt-24">
+            <div className="bg-white rounded-3xl p-8 shadow-xl border border-border">
+              <div className="mb-10 space-y-4">
+                <div className="flex justify-between items-end mb-2">
+                  <div>
+                    <span className="text-xs font-bold uppercase tracking-widest text-primary">Step {step} of {totalSteps}</span>
+                    <h2 className="text-2xl font-headline font-bold text-primary">
+                      {step === 1 && "Pricing & Availability"}
+                      {step === 2 && "Venue Policies"}
+                      {step === 3 && "Contact Information"}
+                      {step === 4 && "Event Details"}
+                      {step === 5 && "Additional Requirements"}
+                    </h2>
+                  </div>
+                  <span className="text-sm font-medium text-muted-foreground">{Math.round(progress)}% Complete</span>
                 </div>
-                <span className="text-sm font-medium text-muted-foreground">{Math.round(progress)}% Complete</span>
+                <Progress value={progress} className="h-2" />
               </div>
-              <Progress value={progress} className="h-2" />
-              <div className="hidden md:flex justify-between mt-6">
-                {[
-                  { id: 1, label: "Availability", icon: Calendar },
-                  { id: 2, label: "Policies", icon: AlertTriangle },
-                  { id: 3, label: "Contact", icon: User },
-                  { id: 4, label: "Event", icon: ClipboardCheck },
-                  { id: 5, label: "Logistics", icon: CheckSquare }
-                ].map((s) => (
-                  <div key={s.id} className={cn(
-                    "flex items-center gap-2",
-                    step >= s.id ? "text-primary" : "text-muted-foreground opacity-50"
-                  )}>
-                    <div className={cn(
-                      "w-8 h-8 rounded-full flex items-center justify-center border-2",
-                      step >= s.id ? "border-primary bg-primary/10" : "border-muted"
-                    )}>
-                      <s.icon className="h-4 w-4" />
-                    </div>
-                    <span className="text-sm font-bold">{s.label}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
 
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                {step === 1 && (
-                  <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-2 text-primary">
-                        <Calendar className="h-5 w-5" />
-                        <h3 className="text-xl font-bold">Live Availability Schedule</h3>
-                      </div>
-                      <p className="text-muted-foreground">Please check the schedule below for your preferred date and time before continuing.</p>
-                      <div className="rounded-2xl border border-border overflow-hidden bg-muted/20">
-                        <iframe 
-                          src="https://v2.hallmaster.co.uk/Scheduler/View/10228?startRoom=0&amp;hideTitle=true&amp;hideTopBar=true&amp;hideButtons=true&amp;disableLinks=true" 
-                          style={{ width: '100%', height: '800px', border: 'none' }}
-                        />
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                  {step === 1 && (
+                    <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-2 text-primary">
+                          <Calendar className="h-5 w-5" />
+                          <h3 className="text-xl font-bold">Live Availability Schedule</h3>
+                        </div>
+                        <p className="text-muted-foreground">Please check the schedule below for your preferred date and time before continuing.</p>
+                        <div className="rounded-2xl border border-border overflow-hidden bg-muted/20">
+                          <iframe 
+                            src="https://v2.hallmaster.co.uk/Scheduler/View/10228?startRoom=0&amp;hideTitle=true&amp;hideTopBar=true&amp;hideButtons=true&amp;disableLinks=true" 
+                            style={{ width: '100%', height: '800px', border: 'none' }}
+                          />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {step === 2 && (
-                  <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
-                    <div className="space-y-6">
-                      <div className="p-6 rounded-2xl bg-blue-50/50 border border-blue-100 space-y-3">
-                        <div className="flex items-center gap-3 text-blue-700">
-                          <div className="p-2 bg-blue-100 rounded-lg"><Info className="h-5 w-5" /></div>
-                          <h3 className="font-bold text-lg">Bouncy Castles</h3>
-                        </div>
-                        <p className="text-muted-foreground leading-relaxed">
-                          We can have bouncy castles inside and outside 👍 please see our guidance in the 
-                          <Link href="/bouncy-castles" className="text-primary font-semibold hover:underline px-1">Bouncy Castle guidance</Link> 
-                          to help your choice.
-                        </p>
-                      </div>
-
-                      <div className="p-6 rounded-2xl bg-amber-50/50 border border-amber-100 space-y-3">
-                        <div className="flex items-center gap-3 text-amber-700">
-                          <div className="p-2 bg-amber-100 rounded-lg"><AlertTriangle className="h-5 w-5" /></div>
-                          <h3 className="font-bold text-lg">Fireworks</h3>
-                        </div>
-                        <p className="text-muted-foreground leading-relaxed">
-                          Due to the proximity of properties, schools and sports facilities we cannot permit the use of fireworks during the use of Bishops Hull Hub.
-                        </p>
-                      </div>
-
-                      <div className="p-6 rounded-2xl bg-red-50/50 border border-red-100 space-y-3">
-                        <div className="flex items-center gap-3 text-red-700">
-                          <div className="p-2 bg-red-100 rounded-lg"><Users className="h-5 w-5" /></div>
-                          <h3 className="font-bold text-lg">Weddings</h3>
-                        </div>
-                        <p className="text-muted-foreground leading-relaxed">
-                          Unfortunately we are unable to accommodate wedding ceremonies or formal receptions.
-                        </p>
-                      </div>
-                    </div>
-
-                    <FormField
-                      control={form.control}
-                      name="acknowledgedPolicies"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-6 rounded-2xl bg-primary/5 border border-primary/10">
-                          <FormControl>
-                            <Checkbox 
-                              checked={field.value} 
-                              onCheckedChange={field.onChange} 
-                            />
-                          </FormControl>
-                          <div className="space-y-1 leading-none">
-                            <FormLabel className="text-base font-bold text-primary">
-                              I acknowledge these venue policies and restrictions.
-                            </FormLabel>
-                            <FormMessage />
+                  {step === 2 && (
+                    <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+                      <div className="space-y-6">
+                        <div className="p-6 rounded-2xl bg-blue-50/50 border border-blue-100 space-y-3">
+                          <div className="flex items-center gap-3 text-blue-700">
+                            <div className="p-2 bg-blue-100 rounded-lg"><Info className="h-5 w-5" /></div>
+                            <h3 className="font-bold text-lg">Bouncy Castles</h3>
                           </div>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                )}
+                          <p className="text-muted-foreground leading-relaxed">
+                            We allow bouncy castles inside and outside. Please see our dedicated 
+                            <Link href="/bouncy-castles" className="text-primary font-semibold hover:underline px-1">guidance page</Link> 
+                            for safety and size requirements.
+                          </p>
+                        </div>
 
-                {step === 3 && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-right-4 duration-500">
-                    <FormField
-                      control={form.control}
-                      name="name"
-                      render={({ field }) => (
-                        <FormItem className="md:col-span-2">
-                          <FormLabel>Your Name</FormLabel>
-                          <FormControl><Input placeholder="John Doe" {...field} /></FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem className="md:col-span-2">
-                          <FormLabel>Your Email</FormLabel>
-                          <FormControl><Input type="email" placeholder="john@example.com" {...field} /></FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="preferredContact"
-                      render={({ field }) => (
-                        <FormItem className="md:col-span-2">
-                          <FormLabel>Preferred Method of Contact</FormLabel>
-                          <FormControl>
-                            <RadioGroup
-                              onValueChange={field.onChange}
-                              defaultValue={field.value}
-                              className="flex gap-4 pt-2"
-                            >
-                              <FormItem className="flex items-center space-x-2 space-y-0">
-                                <FormControl>
-                                  <RadioGroupItem value="Email" />
-                                </FormControl>
-                                <FormLabel className="font-normal flex items-center gap-1 cursor-pointer">
-                                  <Mail className="h-4 w-4" /> Email
-                                </FormLabel>
-                              </FormItem>
-                              <FormItem className="flex items-center space-x-2 space-y-0">
-                                <FormControl>
-                                  <RadioGroupItem value="Phone" />
-                                </FormControl>
-                                <FormLabel className="font-normal flex items-center gap-1 cursor-pointer">
-                                  <PhoneIcon className="h-4 w-4" /> Phone
-                                </FormLabel>
-                              </FormItem>
-                            </RadioGroup>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="address"
-                      render={({ field }) => (
-                        <FormItem className="md:col-span-2">
-                          <FormLabel>Postal Address</FormLabel>
-                          <FormControl><Textarea placeholder="Enter your full street address" {...field} /></FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="postcode"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Postcode</FormLabel>
-                          <FormControl><Input placeholder="e.g. TA1 5EB" {...field} /></FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="phone"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Telephone Number</FormLabel>
-                          <FormControl><Input placeholder="07123 456789" {...field} /></FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                )}
+                        <div className="p-6 rounded-2xl bg-amber-50/50 border border-amber-100 space-y-3">
+                          <div className="flex items-center gap-3 text-amber-700">
+                            <div className="p-2 bg-amber-100 rounded-lg"><AlertTriangle className="h-5 w-5" /></div>
+                            <h3 className="font-bold text-lg">Fireworks</h3>
+                          </div>
+                          <p className="text-muted-foreground leading-relaxed">
+                            Due to proximity to schools and homes, we cannot permit fireworks.
+                          </p>
+                        </div>
+                      </div>
 
-                {step === 4 && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-right-4 duration-500">
-                    <div className="md:col-span-2 space-y-4">
-                      <div className="p-4 rounded-xl bg-primary/5 border border-primary/10 text-sm space-y-2">
+                      <FormField
+                        control={form.control}
+                        name="acknowledgedPolicies"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-6 rounded-2xl bg-primary/5 border border-primary/10">
+                            <FormControl>
+                              <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                              <FormLabel className="text-base font-bold text-primary cursor-pointer">
+                                I acknowledge these venue policies and restrictions.
+                              </FormLabel>
+                              <FormMessage />
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  )}
+
+                  {step === 3 && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-right-4 duration-500">
+                      <FormField
+                        control={form.control}
+                        name="name"
+                        render={({ field }) => (
+                          <FormItem className="md:col-span-2">
+                            <FormLabel>Your Full Name</FormLabel>
+                            <FormControl><Input placeholder="John Doe" {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem className="md:col-span-2">
+                            <FormLabel>Email Address</FormLabel>
+                            <FormControl><Input type="email" placeholder="john@example.com" {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="preferredContact"
+                        render={({ field }) => (
+                          <FormItem className="md:col-span-2">
+                            <FormLabel>Preferred Method of Contact</FormLabel>
+                            <FormControl>
+                              <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex gap-4 pt-2">
+                                <FormItem className="flex items-center space-x-2 space-y-0">
+                                  <FormControl><RadioGroupItem value="Email" /></FormControl>
+                                  <FormLabel className="font-normal flex items-center gap-1 cursor-pointer"><Mail className="h-4 w-4" /> Email</FormLabel>
+                                </FormItem>
+                                <FormItem className="flex items-center space-x-2 space-y-0">
+                                  <FormControl><RadioGroupItem value="Phone" /></FormControl>
+                                  <FormLabel className="font-normal flex items-center gap-1 cursor-pointer"><PhoneIcon className="h-4 w-4" /> Phone</FormLabel>
+                                </FormItem>
+                              </RadioGroup>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="address"
+                        render={({ field }) => (
+                          <FormItem className="md:col-span-2">
+                            <FormLabel>Postal Address</FormLabel>
+                            <FormControl><Textarea placeholder="Enter your full street address" {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="postcode"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Postcode</FormLabel>
+                            <FormControl><Input placeholder="e.g. TA1 5EB" {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="phone"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Telephone Number</FormLabel>
+                            <FormControl><Input placeholder="07123 456789" {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  )}
+
+                  {step === 4 && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-right-4 duration-500">
+                      <div className="md:col-span-2 p-6 rounded-2xl bg-primary/5 border border-primary/10 space-y-2">
                         <div className="flex items-center gap-2 text-primary font-bold">
-                          <Info className="h-4 w-4" />
+                          <Info className="h-5 w-5" />
                           Deposit Information
                         </div>
-                        <p>Please note any evening events extending beyond 8pm will hold a <strong>£100</strong> refundable deposit. All other bookings will require a <strong>£50</strong> deposit.</p>
-                        <p className="text-muted-foreground italic">Deposits will be returned upon return of the facility in the condition found within 2 days of the hire.</p>
+                        <p className="text-sm">Evening events (after 8pm) require a <strong>£100</strong> deposit. All other bookings require <strong>£50</strong>.</p>
+                        <p className="text-xs text-muted-foreground italic">Deposits are returned within 2 days of hire if the facility is left in good condition.</p>
                       </div>
-                    </div>
-                    <FormField
-                      control={form.control}
-                      name="date"
-                      render={({ field }) => (
-                        <FormItem className="md:col-span-2">
-                          <FormLabel>Date Required (Minimum 14 days in advance)</FormLabel>
-                          <FormControl>
-                            <Input 
-                              type="date" 
-                              min={minDateStr}
-                              {...field} 
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="startTime"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Start Time (15-min increments)</FormLabel>
-                          <FormControl>
-                            <Input type="time" step="900" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="endTime"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>End Time (15-min increments)</FormLabel>
-                          <FormControl>
-                            <Input type="time" step="900" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    {duration && (
-                      <div className="md:col-span-2 p-3 rounded-lg bg-accent/10 border border-accent/20 flex items-center gap-3">
-                        <Clock className="h-5 w-5 text-primary" />
-                        <span className="font-bold text-primary">Total Booking Duration: {duration}</span>
-                      </div>
-                    )}
 
-                    <FormField
-                      control={form.control}
-                      name="attendance"
-                      render={({ field }) => (
-                        <FormItem className="md:col-span-2">
-                          <FormLabel>Estimated Attendance</FormLabel>
-                          <FormControl><Input type="number" placeholder="e.g. 50" {...field} /></FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                )}
-
-                {step === 5 && (
-                  <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-                    <FormField
-                      control={form.control}
-                      name="typeOfEvent"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Type of Event</FormLabel>
-                          <FormControl><Input placeholder="e.g. Birthday Party, Yoga Class" {...field} /></FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="requirements"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Additional Requirements</FormLabel>
-                          <FormControl>
-                            <Textarea 
-                              placeholder="Let us know if you need kitchen access, bar service, or any other specifics." 
-                              className="min-h-[120px]"
-                              {...field} 
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="agreedToTerms"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 rounded-xl bg-muted/30">
-                          <FormControl>
-                            <Checkbox 
-                              checked={field.value} 
-                              onCheckedChange={field.onChange} 
-                            />
-                          </FormControl>
-                          <div className="space-y-1 leading-none">
-                            <FormLabel>
-                              I have read and agree to the <Link href="/hire-agreement" className="text-primary hover:underline underline-offset-4">Standard Conditions of Hire</Link>.
-                            </FormLabel>
+                      <FormField
+                        control={form.control}
+                        name="date"
+                        render={({ field }) => (
+                          <FormItem className="md:col-span-2">
+                            <FormLabel>Date Required (Min 14 days in advance)</FormLabel>
+                            <FormControl><Input type="date" min={minDateStr} {...field} /></FormControl>
                             <FormMessage />
-                          </div>
-                        </FormItem>
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="startTime"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Start Time (15-min increments)</FormLabel>
+                            <FormControl><Input type="time" step="900" {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="endTime"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>End Time (15-min increments)</FormLabel>
+                            <FormControl><Input type="time" step="900" {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      {duration && (
+                        <div className="md:col-span-2 p-4 rounded-xl bg-accent/10 border border-accent/20 flex items-center gap-3">
+                          <Clock className="h-5 w-5 text-primary" />
+                          <span className="font-bold text-primary">Total Booking Duration: {duration}</span>
+                        </div>
                       )}
-                    />
-                  </div>
-                )}
 
-                <div className="flex justify-between pt-6 border-t border-muted">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={prevStep}
-                    disabled={step === 1}
-                    className={cn(step === 1 && "invisible")}
-                  >
-                    <ArrowLeft className="mr-2 h-4 w-4" /> Previous
-                  </Button>
-
-                  {step < totalSteps ? (
-                    <Button type="button" onClick={nextStep} className="bg-primary hover:bg-primary/90 px-8">
-                      {step === 1 ? "Start Enquiry" : "Next Step"} <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  ) : (
-                    <Button type="submit" className="bg-primary hover:bg-primary/90 px-12">
-                      Submit Booking Enquiry
-                    </Button>
+                      <FormField
+                        control={form.control}
+                        name="attendance"
+                        render={({ field }) => (
+                          <FormItem className="md:col-span-2">
+                            <FormLabel>Estimated Attendance</FormLabel>
+                            <FormControl><Input type="number" placeholder="e.g. 50" {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                   )}
-                </div>
-              </form>
-            </Form>
-          </div>
-        </section>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-8">
-            <section className="space-y-6">
-              <h2 className="text-3xl font-headline font-bold text-primary">Facility Overview</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {step === 5 && (
+                    <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+                      <FormField
+                        control={form.control}
+                        name="typeOfEvent"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Type of Event</FormLabel>
+                            <FormControl><Input placeholder="e.g. Birthday Party, Yoga Class" {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="requirements"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Additional Requirements</FormLabel>
+                            <FormControl><Textarea placeholder="Kitchen access, bar service, etc." className="min-h-[120px]" {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="agreedToTerms"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 rounded-xl bg-muted/30">
+                            <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                            <div className="space-y-1 leading-none">
+                              <FormLabel className="cursor-pointer">
+                                I agree to the <Link href="/hire-agreement" className="text-primary hover:underline">Standard Conditions of Hire</Link>.
+                              </FormLabel>
+                              <FormMessage />
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  )}
+
+                  <div className="flex justify-between pt-6 border-t border-muted">
+                    <Button type="button" variant="ghost" onClick={prevStep} disabled={step === 1} className={cn(step === 1 && "invisible")}>
+                      <ArrowLeft className="mr-2 h-4 w-4" /> Previous
+                    </Button>
+
+                    {step < totalSteps ? (
+                      <Button type="button" onClick={nextStep} className="bg-primary hover:bg-primary/90 px-8">
+                        {step === 1 ? "Start Enquiry" : "Next Step"} <ArrowRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    ) : (
+                      <Button type="submit" className="bg-primary hover:bg-primary/90 px-12" disabled={isSubmitting}>
+                        {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                        Submit Booking Enquiry
+                      </Button>
+                    )}
+                  </div>
+                </form>
+              </Form>
+            </div>
+          </section>
+
+          {/* Additional Info Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <Card className="border-none shadow-lg bg-white">
+              <CardHeader><CardTitle className="text-xl text-primary font-headline">Facility Overview</CardTitle></CardHeader>
+              <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {[
                   { icon: Users, label: "Capacity", value: "Up to 110 people" },
                   { icon: Wifi, label: "Connectivity", value: "Free High-speed Wi-Fi" },
-                  { icon: Coffee, label: "Kitchen", value: "Full catering kitchen available" },
-                  { icon: Car, label: "Parking", value: "On-site parking for 18 spaces" },
-                  { icon: MapPin, label: "Accessibility", value: "Full disabled access & facilities" },
+                  { icon: Coffee, label: "Kitchen", value: "Catering kitchen" },
+                  { icon: Car, label: "Parking", value: "18 On-site spaces" },
                 ].map((item, idx) => (
-                  <div key={idx} className="flex items-center gap-4 p-4 rounded-xl bg-muted/30">
-                    <item.icon className="h-6 w-6 text-primary" />
-                    <div>
-                      <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider">{item.label}</p>
-                      <p className="font-semibold">{item.value}</p>
-                    </div>
+                  <div key={idx} className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                    <item.icon className="h-5 w-5 text-primary shrink-0" />
+                    <div><p className="text-[10px] text-muted-foreground uppercase font-bold">{item.label}</p><p className="text-sm font-semibold">{item.value}</p></div>
                   </div>
                 ))}
-              </div>
-            </section>
-          </div>
-          <div className="space-y-8">
-            <Card className="border-none shadow-lg bg-white overflow-hidden">
-              <CardHeader className="bg-accent/10 border-b border-accent/20">
-                <CardTitle className="text-xl text-primary font-headline">Booking Checklist</CardTitle>
-              </CardHeader>
-              <CardContent className="p-6 space-y-4">
-                <div className="space-y-3">
-                  {[
-                    "Check live availability above",
-                    "Read the Venue Policies",
-                    "Review the Hire Agreement",
-                    "Understand cleaning duties",
-                    "Confirm attendance < 110",
-                  ].map((item, idx) => (
-                    <div key={idx} className="flex items-start gap-3">
-                      <CheckCircle2 className="h-5 w-5 text-accent shrink-0" />
-                      <span className="text-sm">{item}</span>
-                    </div>
-                  ))}
-                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-none shadow-lg bg-white">
+              <CardHeader><CardTitle className="text-xl text-primary font-headline">Booking Checklist</CardTitle></CardHeader>
+              <CardContent className="space-y-3">
+                {[
+                  "Check live availability schedule",
+                  "Read Venue Policies & Bouncy Castle rules",
+                  "Ensure attendance does not exceed 110",
+                  "Agree to Standard Conditions of Hire",
+                ].map((item, idx) => (
+                  <div key={idx} className="flex items-start gap-3">
+                    <CheckCircle2 className="h-5 w-5 text-accent shrink-0" />
+                    <span className="text-sm">{item}</span>
+                  </div>
+                ))}
               </CardContent>
             </Card>
           </div>
