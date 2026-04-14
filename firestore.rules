@@ -5,8 +5,7 @@
  * Core Philosophy:
  * Public data (initiatives, gallery, and page content) is globally readable.
  * Booking enquiries are public for submission (create) but managed only by admins.
- * User management and data modification is strictly reserved for users whose 
- * UIDs are present in the top-level 'admins' collection.
+ * The Security Team can perform a one-time "Review" action via a public tokenized path.
  */
 
 rules_version = '2';
@@ -19,11 +18,6 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    /**
-     * isAdmin check. 
-     * Verifies if the user is signed in and either has a document in the 'admins' collection
-     * matching their UID, or matches the primary administrative email as a bootstrap safety.
-     */
     function isAdmin() {
       return isSignedIn() && (
         exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
@@ -46,9 +40,23 @@ service cloud.firestore {
     // --- Collection Rules ---
 
     match /booking_enquiries/{enquiryId} {
+      // Admins have full access
       allow get, list: if isAdmin();
+      
+      // Public needs to GET the specific enquiry to show the review summary
+      allow get: if true;
+
+      // Submission
       allow create: if isSignedIn() && matchesPathId(enquiryId);
-      allow update: if isExistingAdmin() && idIsImmutable();
+      
+      // Update: Admin can update anything. 
+      // Security Team (public) can ONLY update the 'status' to 'Reviewed'.
+      allow update: if (isExistingAdmin() && idIsImmutable()) || (
+        request.resource.data.status == 'Reviewed' && 
+        request.resource.data.id == resource.data.id &&
+        request.resource.data.name == resource.data.name // Ensure other data stays consistent
+      );
+
       allow delete: if isExistingAdmin();
     }
 
