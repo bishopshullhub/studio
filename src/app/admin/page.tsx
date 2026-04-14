@@ -9,12 +9,16 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { aiScheduleDescriptionAssistant } from '@/ai/flows/ai-schedule-description-assistant';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Sparkles, LayoutDashboard, PlusCircle, Settings, LogOut } from 'lucide-react';
+import { Loader2, Sparkles, LayoutDashboard, PlusCircle, Settings, LogOut, CheckCircle } from 'lucide-react';
 import { CATEGORIES, DAYS } from '@/lib/schedule-data';
+import { useFirebase, setDocumentNonBlocking } from '@/firebase';
+import { doc } from 'firebase/firestore';
 
 export default function AdminPortal() {
   const { toast } = useToast();
+  const { firestore } = useFirebase();
   const [loading, setLoading] = useState(false);
+  const [publishing, setPublishing] = useState(false);
   const [formData, setFormData] = useState({
     activityName: '',
     category: '',
@@ -23,6 +27,8 @@ export default function AdminPortal() {
     startTime: '',
     endTime: '',
     additionalDetails: '',
+    contactInfo: '',
+    frequency: 'Weekly',
   });
   const [generatedDescription, setGeneratedDescription] = useState('');
 
@@ -40,7 +46,7 @@ export default function AdminPortal() {
       toast({
         variant: "destructive",
         title: "Missing Fields",
-        description: "Please fill in the basic activity details first.",
+        description: "Please fill in the activity name, category, and day first.",
       });
       return;
     }
@@ -58,17 +64,75 @@ export default function AdminPortal() {
       });
       setGeneratedDescription(result.description);
       toast({
-        title: "Description Generated",
-        description: "AI assistant has created a draft for you.",
+        title: "AI Copy Generated",
+        description: "Review and refine the draft below.",
       });
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Generation Failed",
-        description: "Could not generate description at this time.",
+        description: "The AI assistant is temporarily unavailable.",
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePublish = async () => {
+    if (!formData.activityName || !generatedDescription || !formData.dayOfWeek) {
+      toast({
+        variant: "destructive",
+        title: "Cannot Publish",
+        description: "Ensure name, day, and description are all present.",
+      });
+      return;
+    }
+
+    setPublishing(true);
+    try {
+      const scheduleId = Math.random().toString(36).substring(7);
+      const docRef = doc(firestore, 'weekly_schedules', scheduleId);
+      
+      const newActivity = {
+        id: scheduleId,
+        activityName: formData.activityName,
+        dayOfWeek: formData.dayOfWeek,
+        startTime: formData.startTime || '00:00',
+        endTime: formData.endTime || '00:00',
+        category: formData.category,
+        description: generatedDescription,
+        contactInfo: formData.contactInfo || 'info@bhhub.co.uk',
+        frequency: formData.frequency,
+      };
+
+      setDocumentNonBlocking(docRef, newActivity, {});
+      
+      toast({
+        title: "Activity Published",
+        description: `${formData.activityName} is now live on the schedule.`,
+      });
+
+      // Clear form
+      setFormData({
+        activityName: '',
+        category: '',
+        targetAudience: '',
+        dayOfWeek: '',
+        startTime: '',
+        endTime: '',
+        additionalDetails: '',
+        contactInfo: '',
+        frequency: 'Weekly',
+      });
+      setGeneratedDescription('');
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Publish Failed",
+        description: "Check your internet connection and permissions.",
+      });
+    } finally {
+      setPublishing(false);
     }
   };
 
@@ -88,7 +152,6 @@ export default function AdminPortal() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Sidebar */}
           <div className="lg:col-span-1 space-y-4">
             <div className="bg-white rounded-xl shadow-sm border border-border p-2">
               <nav className="space-y-1">
@@ -102,13 +165,12 @@ export default function AdminPortal() {
             </div>
           </div>
 
-          {/* Main Content */}
           <div className="lg:col-span-3 space-y-8">
             <Card className="border-none shadow-xl bg-white">
               <CardHeader>
-                <CardTitle className="text-2xl font-headline text-primary">Add New Schedule Activity</CardTitle>
+                <CardTitle className="text-2xl font-headline text-primary">Schedule New Activity</CardTitle>
                 <CardDescription>
-                  Create a new entry for the live weekly schedule. Use the AI assistant to help with copywriting.
+                  Populate the Hub's live timetable. Use the AI tool to draft professional copy.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-8">
@@ -125,7 +187,7 @@ export default function AdminPortal() {
                   </div>
                   <div className="space-y-2">
                     <Label>Category</Label>
-                    <Select onValueChange={(val) => handleSelectChange('category', val)}>
+                    <Select value={formData.category} onValueChange={(val) => handleSelectChange('category', val)}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select Category" />
                       </SelectTrigger>
@@ -135,18 +197,32 @@ export default function AdminPortal() {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="targetAudience">Target Audience</Label>
+                    <Label htmlFor="contactInfo">Contact Info (Email/Web)</Label>
                     <Input 
-                      id="targetAudience" 
-                      name="targetAudience" 
-                      placeholder="e.g. Adults 50+" 
-                      value={formData.targetAudience}
+                      id="contactInfo" 
+                      name="contactInfo" 
+                      placeholder="e.g. instructor@example.com" 
+                      value={formData.contactInfo}
                       onChange={handleInputChange}
                     />
                   </div>
                   <div className="space-y-2">
+                    <Label>Frequency</Label>
+                    <Select value={formData.frequency} onValueChange={(val) => handleSelectChange('frequency', val)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select Frequency" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Weekly">Weekly</SelectItem>
+                        <SelectItem value="Fortnightly">Fortnightly</SelectItem>
+                        <SelectItem value="Monthly">Monthly</SelectItem>
+                        <SelectItem value="First Saturday of Month">First Saturday of Month</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
                     <Label>Day of Week</Label>
-                    <Select onValueChange={(val) => handleSelectChange('dayOfWeek', val)}>
+                    <Select value={formData.dayOfWeek} onValueChange={(val) => handleSelectChange('dayOfWeek', val)}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select Day" />
                       </SelectTrigger>
@@ -155,34 +231,24 @@ export default function AdminPortal() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="startTime">Start Time</Label>
-                    <Input 
-                      id="startTime" 
-                      name="startTime" 
-                      type="time" 
-                      value={formData.startTime}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="endTime">End Time</Label>
-                    <Input 
-                      id="endTime" 
-                      name="endTime" 
-                      type="time" 
-                      value={formData.endTime}
-                      onChange={handleInputChange}
-                    />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="startTime">Start</Label>
+                      <Input id="startTime" name="startTime" type="time" step="900" value={formData.startTime} onChange={handleInputChange} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="endTime">End</Label>
+                      <Input id="endTime" name="endTime" type="time" step="900" value={formData.endTime} onChange={handleInputChange} />
+                    </div>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="additionalDetails">Additional USP / Details (for AI Assistant)</Label>
+                  <Label htmlFor="additionalDetails">Bullet Points for AI Assistant</Label>
                   <Textarea 
                     id="additionalDetails" 
                     name="additionalDetails" 
-                    placeholder="e.g. Focuses on breathing, quiet music played, beginner friendly..."
+                    placeholder="e.g. Beginner friendly, please bring a mat, £5 per session..."
                     value={formData.additionalDetails}
                     onChange={handleInputChange}
                   />
@@ -201,11 +267,11 @@ export default function AdminPortal() {
                         disabled={loading}
                       >
                         {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                        Generate with AI Assistant
+                        Generate with AI
                       </Button>
                     </div>
                     <Textarea 
-                      placeholder="Write your own description or use the AI assistant above..." 
+                      placeholder="AI will generate text here, or you can write manually..." 
                       className="min-h-[120px]"
                       value={generatedDescription}
                       onChange={(e) => setGeneratedDescription(e.target.value)}
@@ -214,8 +280,14 @@ export default function AdminPortal() {
                 </div>
 
                 <div className="flex justify-end pt-8">
-                  <Button size="lg" className="px-12 bg-primary hover:bg-primary/90">
-                    Publish to Live Schedule
+                  <Button 
+                    size="lg" 
+                    className="px-12 bg-primary hover:bg-primary/90 gap-2"
+                    disabled={publishing}
+                    onClick={handlePublish}
+                  >
+                    {publishing ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
+                    Publish to Schedule
                   </Button>
                 </div>
               </CardContent>
