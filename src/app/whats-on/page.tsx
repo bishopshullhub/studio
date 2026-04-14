@@ -5,7 +5,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Clock, Calendar, Loader2, Zap, CalendarDays, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Clock, Calendar, Loader2, Zap, CalendarDays, MapPin, ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
 import { getLiveCalendarEventsAction, LiveEvent } from '@/app/actions/get-calendar';
 import { format, isToday, parseISO, startOfWeek, addDays, eachDayOfInterval, isSameDay, addWeeks, subWeeks } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -195,13 +195,35 @@ export default function WhatsOnPage() {
         )}
       </div>
 
-      <section id="tickets" className="bg-primary rounded-[3rem] p-8 md:p-16 border border-primary/10 mt-16 text-center space-y-8 shadow-2xl text-primary-foreground">
-        <div className="max-w-2xl mx-auto space-y-6">
-          <Badge variant="secondary" className="bg-white/20 text-white border-none px-4 py-1">FUNDRAISERS & SPECIALS</Badge>
-          <h2 className="text-4xl font-headline font-bold">Special Event Tickets</h2>
-          <p className="text-lg opacity-90 leading-relaxed">
-            Don't miss out on our seasonal fundraisers and special village events. Check our notices for ticket availability.
+      <section id="tickets" className="space-y-8 mt-16 scroll-mt-24">
+        <div className="text-center space-y-4">
+          <div className="inline-flex items-center gap-2 px-4 py-1 bg-primary/10 text-primary font-bold rounded-full text-sm uppercase tracking-wider">
+            Tickets & Fundraisers
+          </div>
+          <h2 className="text-4xl font-headline font-bold text-primary">Special Event Tickets</h2>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+            Support the Hub and the village community by attending our special events. Book your tickets securely through our SumUp store below.
           </p>
+        </div>
+
+        <div className="bg-white rounded-[2.5rem] overflow-hidden shadow-2xl border border-border relative">
+          <div className="w-full aspect-[4/3] md:aspect-video lg:h-[800px]">
+            <iframe 
+              src="https://bishopshullhub.sumupstore.com/" 
+              className="w-full h-full border-none"
+              title="Bishops Hull Hub Ticket Store"
+            />
+          </div>
+          <div className="p-6 bg-muted/30 border-t flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-sm text-muted-foreground italic">
+              Having trouble viewing the store? You can also browse directly in a new window.
+            </p>
+            <Button asChild variant="outline" className="shrink-0 gap-2 border-primary text-primary hover:bg-primary/5">
+              <a href="https://bishopshullhub.sumupstore.com/" target="_blank" rel="noopener noreferrer">
+                Open Store Externally <ExternalLink className="h-4 w-4" />
+              </a>
+            </Button>
+          </div>
         </div>
       </section>
     </div>
