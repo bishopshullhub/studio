@@ -6,6 +6,7 @@ import { formatReviewEmail } from '@/ai/flows/format-review-email-flow';
 import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+const ADMIN_EMAIL = 'bishopshullhub@gmail.com';
 
 /**
  * Server Action to handle the logic of sending the enquiry email to administrators.
@@ -17,7 +18,7 @@ export async function sendEnquiryEmailAction(enquiryData: any) {
     if (process.env.RESEND_API_KEY && process.env.RESEND_API_KEY !== 're_your_api_key_here') {
       await resend.emails.send({
         from: 'Hub System <onboarding@resend.dev>',
-        to: 'bishopshullhub@gmail.com',
+        to: ADMIN_EMAIL,
         subject: formattedEmail.subject,
         html: formattedEmail.htmlBody,
         text: formattedEmail.textBody,
@@ -37,6 +38,7 @@ export async function sendEnquiryEmailAction(enquiryData: any) {
 
 /**
  * Server Action to send review requests to the Security Team.
+ * Note: While in Resend testing mode, we send to the verified ADMIN_EMAIL.
  */
 export async function sendSecurityReviewEmailAction(enquiryData: any, securityContacts: any[], baseUrl: string) {
   try {
@@ -60,12 +62,14 @@ export async function sendSecurityReviewEmailAction(enquiryData: any, securityCo
       };
     }
 
-    const emails = securityContacts.map(contact => contact.email).filter(Boolean);
+    // While Resend domain is unverified, we must send to the account owner (admin)
+    // to avoid the "only send testing emails to your own email address" error.
+    const recipients = [ADMIN_EMAIL];
 
     if (process.env.RESEND_API_KEY && !process.env.RESEND_API_KEY.includes('re_your_api_key')) {
       const { error } = await resend.emails.send({
         from: 'Hub Security <onboarding@resend.dev>',
-        to: emails,
+        to: recipients,
         subject: formattedEmail.subject,
         html: formattedEmail.htmlBody,
         text: formattedEmail.textBody,
@@ -76,7 +80,7 @@ export async function sendSecurityReviewEmailAction(enquiryData: any, securityCo
       }
     } else {
       console.log('--- SECURITY REVIEW EMAIL SIMULATION ---');
-      console.log('To Recipients:', emails.join(', '));
+      console.log('To Recipient (Restricted Mode):', recipients[0]);
       console.log('Subject:', formattedEmail.subject);
       console.log('Review Link:', reviewUrl);
     }
