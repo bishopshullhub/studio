@@ -109,7 +109,13 @@ export default function HomePage() {
               </p>
             </div>
             <Button asChild size="lg" className="w-fit">
-              <Link href="/community#youth">Register Your Interest</Link>
+              <a 
+                href="https://docs.google.com/forms/d/e/1FAIpQLSdbFE1XNPMMnVcUxeR7XnxVJa-qyC7vrPxmlgF3g4AXDmzkoA/viewform" 
+                target="_blank" 
+                rel="noopener noreferrer"
+              >
+                Register Your Interest
+              </a>
             </Button>
           </div>
           <div className="relative h-[400px] lg:h-auto">
