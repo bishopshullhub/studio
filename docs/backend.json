@@ -1,61 +1,6 @@
 
 {
   "entities": {
-    "WeeklySchedule": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "WeeklySchedule",
-      "type": "object",
-      "description": "Represents a single entry in the Bishops Hull Hub's weekly activity schedule, providing details like activity name, time, and contact information.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the WeeklySchedule entity."
-        },
-        "activityName": {
-          "type": "string",
-          "description": "The name of the activity or class (e.g., 'Rich Parkers Fitness')."
-        },
-        "dayOfWeek": {
-          "type": "string",
-          "description": "The day of the week when the activity takes place (e.g., 'Monday', 'Tuesday')."
-        },
-        "startTime": {
-          "type": "string",
-          "description": "The scheduled start time of the activity in HH:MM format (e.g., '06:30')."
-        },
-        "endTime": {
-          "type": "string",
-          "description": "The scheduled end time of the activity in HH:MM format (e.g., '07:00')."
-        },
-        "category": {
-          "type": "string",
-          "description": "A category for the activity (e.g., 'Fitness', 'Youth Club', 'Community')."
-        },
-        "contactInfo": {
-          "type": "string",
-          "description": "Contact information (e.g., email address or URL) for the activity organizer or instructor.",
-          "format": "uri"
-        },
-        "frequency": {
-          "type": "string",
-          "description": "Describes how often the activity occurs (e.g., 'Weekly', 'Fortnightly', 'First Tuesday of the Month')."
-        },
-        "description": {
-          "type": "string",
-          "description": "A brief description of the activity, including target audience or special notes."
-        }
-      },
-      "required": [
-        "id",
-        "activityName",
-        "dayOfWeek",
-        "startTime",
-        "endTime",
-        "category",
-        "contactInfo",
-        "frequency"
-      ]
-    },
     "BookingEnquiry": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "BookingEnquiry",
@@ -263,16 +208,6 @@
   },
   "firestore": {
     "structure": [
-      {
-        "path": "/weekly_schedules/{scheduleId}",
-        "definition": {
-          "entityName": "WeeklySchedule",
-          "schema": {
-            "$ref": "#/backend/entities/WeeklySchedule"
-          },
-          "description": "Stores individual weekly activity schedule entries."
-        }
-      },
       {
         "path": "/booking_enquiries/{enquiryId}",
         "definition": {

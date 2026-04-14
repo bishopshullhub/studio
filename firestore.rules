@@ -1,13 +1,12 @@
+
 /**
  * Bishops Hull Hub Security Rules
  *
  * Core Philosophy:
- * This ruleset implements a role-based administrative model designed for a community hub. 
- * Public data (schedules, initiatives, gallery, and page content) is globally readable to 
- * ensure the website remains accessible to all visitors. Data modification is strictly 
- * reserved for users whose UIDs are present in the top-level 'admins' collection.
- *
- * Force re-deploy: April 2024 security patch for public read access.
+ * Public data (initiatives, gallery, and page content) is globally readable.
+ * Booking enquiries are public for submission (create) but managed only by admins.
+ * User management and data modification is strictly reserved for users whose 
+ * UIDs are present in the top-level 'admins' collection.
  */
 
 rules_version = '2';
@@ -16,48 +15,28 @@ service cloud.firestore {
 
     // --- Helper Functions ---
 
-    /** @description Checks if the user is authenticated (including anonymous). */
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /** @description Checks if the user's UID exists in the admin registry. */
     function isAdmin() {
       return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
     }
 
-    /** @description Verifies administrative status and that the document exists for modifications. */
     function isExistingAdmin() {
       return isAdmin() && resource != null;
     }
 
-    /** @description Enforces that the internal ID field matches the document path ID. */
     function matchesPathId(id) {
       return request.resource.data.id == id;
     }
 
-    /** @description Ensures the 'id' field remains unchanged during updates. */
     function idIsImmutable() {
       return request.resource.data.id == resource.data.id;
     }
 
     // --- Collection Rules ---
 
-    /**
-     * @description Publicly readable activity schedules; editable only by admins.
-     * @path /weekly_schedules/{scheduleId}
-     */
-    match /weekly_schedules/{scheduleId} {
-      allow read: if true;
-      allow create: if isAdmin() && matchesPathId(scheduleId);
-      allow update: if isExistingAdmin() && idIsImmutable();
-      allow delete: if isExistingAdmin();
-    }
-
-    /**
-     * @description Secure collection for booking enquiries. Submission is public; management is admin-only.
-     * @path /booking_enquiries/{enquiryId}
-     */
     match /booking_enquiries/{enquiryId} {
       allow get: if isAdmin();
       allow list: if isAdmin();
@@ -66,10 +45,6 @@ service cloud.firestore {
       allow delete: if isExistingAdmin();
     }
 
-    /**
-     * @description Publicly readable community initiatives and projects.
-     * @path /community_initiatives/{initiativeId}
-     */
     match /community_initiatives/{initiativeId} {
       allow read: if true;
       allow create: if isAdmin() && matchesPathId(initiativeId);
@@ -77,10 +52,6 @@ service cloud.firestore {
       allow delete: if isExistingAdmin();
     }
 
-    /**
-     * @description Metadata for images displayed in the site galleries.
-     * @path /gallery_images/{imageId}
-     */
     match /gallery_images/{imageId} {
       allow read: if true;
       allow create: if isAdmin() && matchesPathId(imageId);
@@ -88,10 +59,6 @@ service cloud.firestore {
       allow delete: if isExistingAdmin();
     }
 
-    /**
-     * @description Static page content (e.g., Privacy Policy, Hire Prices).
-     * @path /page_contents/{contentId}
-     */
     match /page_contents/{contentId} {
       allow read: if true;
       allow create: if isAdmin() && matchesPathId(contentId);
@@ -99,10 +66,6 @@ service cloud.firestore {
       allow delete: if isExistingAdmin();
     }
 
-    /**
-     * @description The registry of administrative users.
-     * @path /admins/{adminId}
-     */
     match /admins/{adminId} {
       allow get: if isSignedIn();
       allow list: if isAdmin();
