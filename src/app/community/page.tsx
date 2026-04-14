@@ -1,13 +1,16 @@
+
 import Image from 'next/image';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { Heart, Landmark, Sprout, Footprints, ExternalLink, Eye, Music, Wind, Hand, TreePine, Accessibility } from 'lucide-react';
+import { Heart, Landmark, Sprout, Footprints, ExternalLink, Eye, Music, Wind, Hand, TreePine, Accessibility, Download, Info } from 'lucide-react';
 
 export default function CommunityPage() {
   const gardenImages = PlaceHolderImages.filter(img => img.id.startsWith('garden-'));
   const sensoryMain = PlaceHolderImages.find(img => img.id === 'sensory-trail-main');
   const sensoryWillow = PlaceHolderImages.find(img => img.id === 'sensory-willow');
+  const sensoryWildflower = PlaceHolderImages.find(img => img.id === 'sensory-wildflower');
+  const sensoryHerbs = PlaceHolderImages.find(img => img.id === 'sensory-herbs');
 
   return (
     <div className="container mx-auto px-4 py-16 space-y-24">
@@ -20,9 +23,127 @@ export default function CommunityPage() {
         </p>
       </section>
 
-      {/* Initiatives Grid */}
+      {/* Sensory Trail - The Main Feature */}
+      <section id="sensory-trail" className="scroll-mt-24 space-y-16">
+        <div className="relative rounded-[3rem] overflow-hidden bg-primary text-primary-foreground shadow-2xl">
+          <div className="absolute inset-0 opacity-20 z-0">
+             <Image 
+                src={sensoryMain?.imageUrl || "https://picsum.photos/seed/sensory-1/1200/600"} 
+                alt="Sensory Trail Entrance" 
+                fill 
+                className="object-cover"
+                data-ai-hint="sensory garden entrance"
+             />
+          </div>
+          <div className="relative z-10 p-8 md:p-16 space-y-8 max-w-4xl">
+            <div className="inline-flex items-center gap-2 px-4 py-1 bg-white/20 rounded-full text-sm font-bold uppercase tracking-wider backdrop-blur-sm">
+              <Footprints className="h-4 w-4" /> Award Winning Project
+            </div>
+            <h2 className="text-4xl md:text-6xl font-headline font-bold leading-tight">The Bishops Hull Sensory Trail</h2>
+            <p className="text-xl md:text-2xl opacity-90 leading-relaxed font-medium">
+              A journey of discovery through the natural beauty of Bishops Hull. Designed for all ages and abilities to connect with nature through touch, sight, sound, and smell.
+            </p>
+            <div className="flex flex-wrap gap-4">
+              <Button variant="secondary" size="lg" className="rounded-2xl px-8 h-14">
+                <Download className="mr-2 h-5 w-5" /> Download Trail Map
+              </Button>
+              <Button variant="outline" className="border-white text-white hover:bg-white/10 rounded-2xl px-8 h-14" size="lg">
+                <Info className="mr-2 h-5 w-5" /> Trail Educational Guide
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Trail Narrative Sections */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div className="space-y-6">
+            <h3 className="text-3xl font-headline font-bold text-primary">Station 1: The Willow Tunnel</h3>
+            <p className="text-lg text-muted-foreground leading-relaxed">
+              Walk through our living willow tunnel. As the seasons change, so does the tunnel—from the bare structures of winter to the lush green canopy of summer. It provides a natural shade and a unique tactile experience for visitors.
+            </p>
+            <div className="p-6 bg-muted/50 rounded-2xl border border-border flex gap-4">
+              <div className="h-10 w-10 bg-primary/10 text-primary rounded-full flex items-center justify-center shrink-0">
+                <Hand className="h-5 w-5" />
+              </div>
+              <p className="text-sm italic">Feel the smooth bark and the flexible branches that form this living structure.</p>
+            </div>
+          </div>
+          <div className="relative aspect-video rounded-[2.5rem] overflow-hidden shadow-xl border-4 border-white">
+            <Image 
+              src={sensoryWillow?.imageUrl || "https://picsum.photos/seed/sensory-2/600/400"} 
+              alt="Living Willow Tunnel" 
+              fill 
+              className="object-cover"
+              data-ai-hint="willow tunnel"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center lg:flex-row-reverse">
+          <div className="relative aspect-video rounded-[2.5rem] overflow-hidden shadow-xl border-4 border-white lg:order-2">
+            <Image 
+              src={sensoryWildflower?.imageUrl || "https://picsum.photos/seed/sensory-3/600/400"} 
+              alt="Wildflower Meadow" 
+              fill 
+              className="object-cover"
+              data-ai-hint="wildflower meadow"
+            />
+          </div>
+          <div className="space-y-6 lg:order-1">
+            <h3 className="text-3xl font-headline font-bold text-primary">Station 2: The Wildflower Meadow</h3>
+            <p className="text-lg text-muted-foreground leading-relaxed">
+              Our meadow is a riot of color during the summer months. It's not just beautiful to look at; it's a vital habitat for local pollinators. Listen to the hum of bees and the gentle rustle of tall grasses in the wind.
+            </p>
+            <div className="p-6 bg-muted/50 rounded-2xl border border-border flex gap-4">
+              <div className="h-10 w-10 bg-primary/10 text-primary rounded-full flex items-center justify-center shrink-0">
+                <Music className="h-5 w-5" />
+              </div>
+              <p className="text-sm italic">Close your eyes and listen to the natural symphony of our local wildlife.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div className="space-y-6">
+            <h3 className="text-3xl font-headline font-bold text-primary">Station 3: The Herb Garden</h3>
+            <p className="text-lg text-muted-foreground leading-relaxed">
+              Designed to stimulate the sense of smell, our herb garden features lavender, rosemary, mint, and thyme. This station encourages visitors to gently touch the leaves to release their natural oils and fragrances.
+            </p>
+            <div className="p-6 bg-muted/50 rounded-2xl border border-border flex gap-4">
+              <div className="h-10 w-10 bg-primary/10 text-primary rounded-full flex items-center justify-center shrink-0">
+                <Wind className="h-5 w-5" />
+              </div>
+              <p className="text-sm italic">Inhale deeply and explore the varied scents of our kitchen and medicinal herbs.</p>
+            </div>
+          </div>
+          <div className="relative aspect-video rounded-[2.5rem] overflow-hidden shadow-xl border-4 border-white">
+            <Image 
+              src={sensoryHerbs?.imageUrl || "https://picsum.photos/seed/sensory-4/600/400"} 
+              alt="Aromatic Herb Garden" 
+              fill 
+              className="object-cover"
+              data-ai-hint="herb garden lavender"
+            />
+          </div>
+        </div>
+
+        {/* Accessibility Note */}
+        <div className="bg-accent/5 border-2 border-accent/20 rounded-[2.5rem] p-8 md:p-12 flex flex-col md:flex-row gap-8 items-center">
+          <div className="h-20 w-20 bg-accent text-primary rounded-3xl flex items-center justify-center shrink-0 shadow-lg">
+            <Accessibility className="h-10 w-10" />
+          </div>
+          <div className="space-y-2">
+            <h4 className="text-2xl font-bold font-headline text-primary">Fully Accessible Design</h4>
+            <p className="text-lg text-muted-foreground leading-relaxed">
+              The entire 100m trail loop has been meticulously planned to be fully accessible. With wide, level paths and high-contrast markers, we ensure that wheelchair users and those with visual impairments can enjoy the trail independently.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Fundraising Grid */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-12">
-        <div id="100-club" className="space-y-6 p-8 rounded-3xl bg-primary/5 border border-primary/10 scroll-mt-24">
+        <div id="100-club" className="space-y-6 p-10 rounded-[3rem] bg-primary/5 border border-primary/10 scroll-mt-24 shadow-sm hover:shadow-md transition-shadow">
           <div className="h-14 w-14 bg-primary text-primary-foreground rounded-2xl flex items-center justify-center">
             <Heart className="h-8 w-8" />
           </div>
@@ -32,12 +153,12 @@ export default function CommunityPage() {
             For just £5 a month, you are entered into our monthly prize draw. All profits go directly towards Hub improvements.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
-            <Button size="lg" className="bg-primary hover:bg-primary/90">Sign Up Digitally</Button>
-            <Button variant="outline" size="lg">Download Form</Button>
+            <Button size="lg" className="bg-primary hover:bg-primary/90 rounded-xl px-8">Sign Up Digitally</Button>
+            <Button variant="outline" size="lg" className="rounded-xl px-8">Download Form</Button>
           </div>
         </div>
 
-        <div id="buy-a-brick" className="space-y-6 p-8 rounded-3xl bg-accent/5 border border-accent/20 scroll-mt-24">
+        <div id="buy-a-brick" className="space-y-6 p-10 rounded-[3rem] bg-accent/5 border border-accent/20 scroll-mt-24 shadow-sm hover:shadow-md transition-shadow">
           <div className="h-14 w-14 bg-accent text-primary rounded-2xl flex items-center justify-center">
             <Landmark className="h-8 w-8" />
           </div>
@@ -46,105 +167,7 @@ export default function CommunityPage() {
             Leave a lasting legacy by buying a commemorative brick. Your name or a message will be permanently 
             engraved and placed in our special tribute wall. A perfect gift or memorial for a loved one.
           </p>
-          <Button size="lg" className="bg-primary hover:bg-primary/90">Order Your Brick</Button>
-        </div>
-      </section>
-
-      {/* Expanded Sensory Trail Section */}
-      <section id="sensory-trail" className="scroll-mt-24 space-y-12">
-        <div className="relative rounded-[3rem] overflow-hidden bg-primary text-primary-foreground shadow-2xl">
-          <div className="absolute inset-0 opacity-20 z-0">
-             <Image 
-                src={sensoryMain?.imageUrl || "https://picsum.photos/seed/sensory-1/1200/600"} 
-                alt="Sensory Trail" 
-                fill 
-                className="object-cover"
-                data-ai-hint="sensory garden"
-             />
-          </div>
-          <div className="relative z-10 p-8 md:p-16 space-y-8 max-w-4xl">
-            <div className="inline-flex items-center gap-2 px-4 py-1 bg-white/20 rounded-full text-sm font-bold uppercase tracking-wider backdrop-blur-sm">
-              <Footprints className="h-4 w-4" /> Award Winning Project
-            </div>
-            <h2 className="text-4xl md:text-6xl font-headline font-bold">The Sensory Trail</h2>
-            <p className="text-xl md:text-2xl opacity-90 leading-relaxed font-medium">
-              A journey of discovery through the natural beauty of Bishops Hull. Designed for all ages and abilities to connect with nature.
-            </p>
-            <div className="flex flex-wrap gap-4">
-              <Button variant="secondary" size="lg" className="rounded-2xl px-8">Download Trail Map</Button>
-              <Button variant="outline" className="border-white text-white hover:bg-white/10 rounded-2xl px-8" size="lg">Educational Guide</Button>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[
-            {
-              title: "Sight",
-              icon: Eye,
-              desc: "A riot of seasonal colors from our wildflower meadow and carefully selected year-round planting.",
-              color: "bg-blue-50 text-blue-700"
-            },
-            {
-              title: "Sound",
-              icon: Music,
-              desc: "Listen to the rustle of the living willow tunnel and the gentle melody of our wind chimes.",
-              color: "bg-amber-50 text-amber-700"
-            },
-            {
-              title: "Smell",
-              icon: Wind,
-              desc: "Inhale the fragrance of our herb garden, featuring lavender, rosemary, and seasonal blooms.",
-              color: "bg-green-50 text-green-700"
-            },
-            {
-              title: "Touch",
-              icon: Hand,
-              desc: "Explore tactile markers, varied path textures, and smooth natural wood installations.",
-              color: "bg-purple-50 text-purple-700"
-            }
-          ].map((station, idx) => (
-            <Card key={idx} className="border-none shadow-lg hover:translate-y-[-4px] transition-all duration-300 rounded-[2rem]">
-              <CardContent className="p-8 space-y-4">
-                <div className={`h-12 w-12 rounded-2xl flex items-center justify-center ${station.color}`}>
-                  <station.icon className="h-6 w-6" />
-                </div>
-                <h3 className="text-xl font-bold font-headline">{station.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{station.desc}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          <div className="relative aspect-video rounded-[2.5rem] overflow-hidden shadow-xl">
-            <Image 
-              src={sensoryWillow?.imageUrl || "https://picsum.photos/seed/sensory-2/600/400"} 
-              alt="Willow Tunnel" 
-              fill 
-              className="object-cover"
-              data-ai-hint="willow tunnel"
-            />
-          </div>
-          <div className="space-y-6">
-            <div className="flex items-center gap-3 text-primary">
-              <Accessibility className="h-8 w-8" />
-              <h3 className="text-2xl md:text-3xl font-headline font-bold">Inclusive by Design</h3>
-            </div>
-            <p className="text-lg text-muted-foreground leading-relaxed">
-              The trail has been meticulously planned to be fully accessible. With wide, level paths and high-contrast markers, we ensure that wheelchair users and those with visual impairments can enjoy the trail independently.
-            </p>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 rounded-2xl bg-muted/50 border border-border">
-                <p className="font-bold text-primary">100m</p>
-                <p className="text-xs text-muted-foreground uppercase font-bold">Total Loop</p>
-              </div>
-              <div className="p-4 rounded-2xl bg-muted/50 border border-border">
-                <p className="font-bold text-primary">Full Access</p>
-                <p className="text-xs text-muted-foreground uppercase font-bold">Step-free</p>
-              </div>
-            </div>
-          </div>
+          <Button size="lg" className="bg-primary hover:bg-primary/90 rounded-xl px-8">Order Your Brick</Button>
         </div>
       </section>
 

@@ -54,6 +54,18 @@
       "description": "The living willow tunnel on the sensory trail",
       "imageUrl": "https://picsum.photos/seed/sensory-2/600/400",
       "imageHint": "willow tunnel"
+    },
+    {
+      "id": "sensory-wildflower",
+      "description": "Wildflower meadow along the sensory trail",
+      "imageUrl": "https://picsum.photos/seed/sensory-3/600/400",
+      "imageHint": "wildflower meadow"
+    },
+    {
+      "id": "sensory-herbs",
+      "description": "Aromatic herb garden station",
+      "imageUrl": "https://picsum.photos/seed/sensory-4/600/400",
+      "imageHint": "herb garden"
     }
   ]
 }
