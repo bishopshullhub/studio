@@ -7,7 +7,7 @@
  * ensure the website remains accessible to all visitors. Data modification is strictly 
  * reserved for users whose UIDs are present in the top-level 'admins' collection.
  *
- * Updated: Force re-deploy to ensure public read access is active.
+ * Force re-deploy: April 2024 security patch for public read access.
  */
 
 rules_version = '2';
@@ -48,7 +48,7 @@ service cloud.firestore {
      * @path /weekly_schedules/{scheduleId}
      */
     match /weekly_schedules/{scheduleId} {
-      allow get, list: if true;
+      allow read: if true;
       allow create: if isAdmin() && matchesPathId(scheduleId);
       allow update: if isExistingAdmin() && idIsImmutable();
       allow delete: if isExistingAdmin();
@@ -59,7 +59,8 @@ service cloud.firestore {
      * @path /booking_enquiries/{enquiryId}
      */
     match /booking_enquiries/{enquiryId} {
-      allow get, list: if isAdmin();
+      allow get: if isAdmin();
+      allow list: if isAdmin();
       allow create: if isSignedIn() && matchesPathId(enquiryId);
       allow update: if isExistingAdmin() && idIsImmutable();
       allow delete: if isExistingAdmin();
@@ -70,7 +71,7 @@ service cloud.firestore {
      * @path /community_initiatives/{initiativeId}
      */
     match /community_initiatives/{initiativeId} {
-      allow get, list: if true;
+      allow read: if true;
       allow create: if isAdmin() && matchesPathId(initiativeId);
       allow update: if isExistingAdmin() && idIsImmutable();
       allow delete: if isExistingAdmin();
@@ -81,7 +82,7 @@ service cloud.firestore {
      * @path /gallery_images/{imageId}
      */
     match /gallery_images/{imageId} {
-      allow get, list: if true;
+      allow read: if true;
       allow create: if isAdmin() && matchesPathId(imageId);
       allow update: if isExistingAdmin() && idIsImmutable();
       allow delete: if isExistingAdmin();
@@ -92,7 +93,7 @@ service cloud.firestore {
      * @path /page_contents/{contentId}
      */
     match /page_contents/{contentId} {
-      allow get, list: if true;
+      allow read: if true;
       allow create: if isAdmin() && matchesPathId(contentId);
       allow update: if isExistingAdmin() && idIsImmutable();
       allow delete: if isExistingAdmin();
