@@ -2,29 +2,31 @@
 
 import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { aiScheduleDescriptionAssistant } from '@/ai/flows/ai-schedule-description-assistant';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Sparkles, LayoutDashboard, PlusCircle, Settings, LogOut, CheckCircle, Inbox, Calendar, User, Mail, Phone, Clock, FileText, ShieldAlert, Key } from 'lucide-react';
+import { Loader2, Sparkles, LayoutDashboard, PlusCircle, Settings, LogOut, CheckCircle, Inbox, Calendar, User, Mail, Phone, Clock, FileText, ShieldAlert, Key, LogIn } from 'lucide-react';
 import { CATEGORIES, DAYS } from '@/lib/schedule-data';
 import { useFirebase, setDocumentNonBlocking, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { doc, collection, query, orderBy } from 'firebase/firestore';
 import { Badge } from '@/components/ui/badge';
+import { signOut } from 'firebase/auth';
+import Link from 'next/link';
 
 export default function AdminPortal() {
   const { toast } = useToast();
-  const { firestore, user, isUserLoading } = useFirebase();
+  const { firestore, auth, user, isUserLoading } = useFirebase();
   const [loading, setLoading] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [activeTab, setActiveTab] = useState('add-activity');
   
   // Status check for Admin role in Firestore
   const adminDocRef = useMemoFirebase(() => {
-    return user ? doc(firestore, 'admins', user.uid) : null;
+    return user && !user.isAnonymous ? doc(firestore, 'admins', user.uid) : null;
   }, [firestore, user]);
   
   const { data: adminRecord, isLoading: checkingAdmin } = useDoc(adminDocRef);
@@ -42,7 +44,6 @@ export default function AdminPortal() {
   });
   const [generatedDescription, setGeneratedDescription] = useState('');
 
-  // Fetch Enquiries - Only if the user is confirmed as an admin
   const enquiriesQuery = useMemoFirebase(() => {
     if (!adminRecord) return null;
     return query(collection(firestore, 'booking_enquiries'), orderBy('submissionDateTime', 'desc'));
@@ -153,11 +154,39 @@ export default function AdminPortal() {
     }
   };
 
+  const handleLogout = async () => {
+    await signOut(auth);
+  };
+
   if (isUserLoading || checkingAdmin) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-muted/30">
         <Loader2 className="h-10 w-10 text-primary animate-spin mb-4" />
         <p className="text-muted-foreground font-medium">Verifying Administrative Status...</p>
+      </div>
+    );
+  }
+
+  // Handle case where user isn't logged in with email
+  if (!user || user.isAnonymous) {
+    return (
+      <div className="min-h-screen bg-muted/30 flex items-center justify-center p-4">
+        <Card className="max-w-md w-full border-none shadow-2xl">
+          <CardHeader className="text-center space-y-2">
+            <div className="mx-auto p-4 bg-primary/10 text-primary rounded-full w-fit">
+              <User className="h-12 w-12" />
+            </div>
+            <CardTitle className="text-2xl font-headline text-primary">Login Required</CardTitle>
+            <CardDescription>
+              You must be logged in with an authorized account to access the Hub Admin Portal.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex justify-center pb-8">
+            <Button asChild className="w-full gap-2">
+              <Link href="/login"><LogIn className="h-4 w-4" /> Go to Login</Link>
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -173,7 +202,7 @@ export default function AdminPortal() {
             </div>
             <CardTitle className="text-2xl font-headline text-primary">Access Restricted</CardTitle>
             <CardDescription>
-              Your account does not have administrative privileges for the Bishops Hull Hub Portal.
+              Your account ({user.email}) does not have administrative privileges.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -182,16 +211,21 @@ export default function AdminPortal() {
                 <Key className="h-4 w-4" /> Your Unique ID
               </div>
               <code className="block bg-white p-3 rounded border border-border text-xs break-all font-mono">
-                {user?.uid}
+                {user.uid}
               </code>
             </div>
             <p className="text-sm text-center text-muted-foreground leading-relaxed">
               To grant access, please add this ID to the <strong>admins</strong> collection in the Firebase Console.
             </p>
-            <Button asChild variant="outline" className="w-full">
-              <a href="/">Return to Public Site</a>
-            </Button>
           </CardContent>
+          <CardFooter className="flex flex-col gap-3">
+            <Button onClick={handleLogout} variant="outline" className="w-full gap-2">
+              <LogOut className="h-4 w-4" /> Sign Out
+            </Button>
+            <Button asChild variant="ghost" className="w-full">
+              <Link href="/">Return to Public Site</Link>
+            </Button>
+          </CardFooter>
         </Card>
       </div>
     );
@@ -200,14 +234,17 @@ export default function AdminPortal() {
   return (
     <div className="min-h-screen bg-muted/30">
       <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary text-primary-foreground rounded-lg">
+            <div className="p-2 bg-primary text-primary-foreground rounded-lg shadow-lg">
               <LayoutDashboard className="h-6 w-6" />
             </div>
-            <h1 className="text-3xl font-headline font-bold text-primary">Admin Portal</h1>
+            <div>
+              <h1 className="text-3xl font-headline font-bold text-primary">Admin Portal</h1>
+              <p className="text-xs text-muted-foreground">Logged in as {user.email}</p>
+            </div>
           </div>
-          <Button variant="outline" className="gap-2">
+          <Button variant="outline" className="gap-2 shadow-sm" onClick={handleLogout}>
             <LogOut className="h-4 w-4" /> Sign Out
           </Button>
         </div>
