@@ -8,21 +8,23 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Clock, Info, ExternalLink, Calendar, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useCollection, useMemoFirebase } from '@/firebase';
+import { useCollection, useMemoFirebase, useFirebase } from '@/firebase';
 import { collection, query, where, orderBy } from 'firebase/firestore';
 
 export default function WhatsOnPage() {
+  const { firestore } = useFirebase();
   const [selectedDay, setSelectedDay] = useState('Monday');
   const [filterCategory, setFilterCategory] = useState<string | null>(null);
 
   // Firestore query for activities
   const scheduleQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
     return query(
-      collection(window.firestore, 'weekly_schedules'),
+      collection(firestore, 'weekly_schedules'),
       where('dayOfWeek', '==', selectedDay),
       orderBy('startTime', 'asc')
     );
-  }, [selectedDay]);
+  }, [firestore, selectedDay]);
 
   const { data: dbActivities, isLoading } = useCollection<Activity>(scheduleQuery);
 
