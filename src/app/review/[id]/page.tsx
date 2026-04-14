@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState, use } from 'react';
@@ -10,6 +9,7 @@ import { doc, updateDoc } from 'firebase/firestore';
 import { Loader2, ShieldCheck, CheckCircle2, Clock, Calendar, User, Info, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
 export default function SecurityReviewPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -162,7 +162,7 @@ export default function SecurityReviewPage({ params }: { params: Promise<{ id: s
                 Approve Event
               </Button>
               <Button asChild variant="outline" className="flex-1 h-14 text-lg">
-                <a href="mailto:bishopshullhub@gmail.com?subject=RE: Booking Query ID ${enquiry.id}">
+                <a href={`mailto:bishopshullhub@gmail.com?subject=RE: Booking Query ID ${enquiry.id}`}>
                   Email Admin
                 </a>
               </Button>
