@@ -5,7 +5,7 @@ import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, LayoutDashboard, LogOut, Inbox, User, Mail, Phone, Clock, Calendar, ShieldAlert, Key, LogIn, FileText, CheckCircle2, MoreVertical, ArrowRight, XCircle, Clock3, LayoutGrid, List, MapPin, Users, ChevronDown, ChevronUp, ShieldCheck, UserPlus, Trash2, Send } from 'lucide-react';
+import { Loader2, LayoutDashboard, LogOut, Inbox, User, Mail, Phone, Clock, Calendar, ShieldAlert, Key, LogIn, FileText, CheckCircle2, MoreVertical, ArrowRight, XCircle, Clock3, LayoutGrid, List, MapPin, Users, ChevronDown, ChevronUp, ShieldCheck, UserPlus, Trash2, Send, AlertCircle } from 'lucide-react';
 import { useFirebase, useCollection, useMemoFirebase, useDoc, setDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
 import { doc, collection, query, orderBy, updateDoc } from 'firebase/firestore';
 import { Badge } from '@/components/ui/badge';
@@ -17,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { sendSecurityReviewEmailAction } from '@/app/actions/send-email';
+import { format, isWithinInterval, addDays, startOfToday, parseISO } from 'date-fns';
 
 const STATUS_COLUMNS = [
   { id: 'Pending', label: 'Pending', color: 'bg-amber-500', icon: Clock3 },
@@ -33,20 +34,17 @@ export default function AdminPortal() {
   const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
   const [activeTab, setActiveTab] = useState('enquiries');
   
-  // Status check for Admin role in Firestore
   const adminDocRef = useMemoFirebase(() => {
     return user && !user.isAnonymous ? doc(firestore, 'admins', user.uid) : null;
   }, [firestore, user]);
   
   const { data: adminRecord, isLoading: checkingAdmin } = useDoc(adminDocRef);
 
-  // Determine if user has admin access
   const hasAdminAccess = useMemo(() => {
     if (!user) return false;
     return !!adminRecord || user.email === PRIMARY_ADMIN_EMAIL;
   }, [adminRecord, user]);
 
-  // Enquiries Query
   const enquiriesQuery = useMemoFirebase(() => {
     if (!hasAdminAccess) return null;
     return query(collection(firestore, 'booking_enquiries'), orderBy('submissionDateTime', 'desc'));
@@ -54,13 +52,27 @@ export default function AdminPortal() {
   
   const { data: enquiries, isLoading: loadingEnquiries } = useCollection(enquiriesQuery);
 
-  // Security Team Query
   const securityQuery = useMemoFirebase(() => {
     if (!hasAdminAccess) return null;
     return query(collection(firestore, 'security_team'), orderBy('addedAt', 'desc'));
   }, [firestore, hasAdminAccess]);
 
   const { data: securityContacts, isLoading: loadingSecurity } = useCollection(securityQuery);
+
+  const upcomingBookings = useMemo(() => {
+    if (!enquiries) return [];
+    const today = startOfToday();
+    const nextWeek = addDays(today, 7);
+    return enquiries.filter(e => {
+      if (e.status !== 'Confirmed') return false;
+      try {
+        const eventDate = parseISO(e.dateRequired);
+        return isWithinInterval(eventDate, { start: today, end: nextWeek });
+      } catch {
+        return false;
+      }
+    }).sort((a, b) => a.dateRequired.localeCompare(b.dateRequired));
+  }, [enquiries]);
 
   const handleUpdateStatus = async (enquiryId: string, newStatus: string) => {
     try {
@@ -74,7 +86,7 @@ export default function AdminPortal() {
 
   const handleSendToSecurity = async (enquiry: any) => {
     if (!securityContacts || securityContacts.length === 0) {
-      toast({ variant: "destructive", title: "Missing Contacts", description: "Add security contacts first." });
+      toast({ variant: "destructive", title: "Missing Contacts", description: "Please add security contacts in the Security Team tab first." });
       return;
     }
 
@@ -84,10 +96,10 @@ export default function AdminPortal() {
       if (result.success) {
         toast({ title: "Review Sent", description: "Security Team has been notified." });
       } else {
-        throw new Error(result.error);
+        toast({ variant: "destructive", title: "Send Failed", description: result.error || "Could not dispatch emails." });
       }
-    } catch (err) {
-      toast({ variant: "destructive", title: "Send Failed", description: "Could not dispatch emails." });
+    } catch (err: any) {
+      toast({ variant: "destructive", title: "Send Failed", description: err.message || "An unexpected error occurred." });
     }
   };
 
@@ -133,6 +145,36 @@ export default function AdminPortal() {
             <h1 className="text-3xl font-headline font-bold text-primary">Admin Portal</h1>
           </div>
           <Button variant="outline" onClick={handleLogout} className="gap-2"><LogOut className="h-4 w-4" /> Sign Out</Button>
+        </div>
+
+        {/* Upcoming Bookings Summary */}
+        <div className="mb-12">
+          <div className="flex items-center gap-2 mb-4">
+            <Calendar className="h-5 w-5 text-primary" />
+            <h2 className="text-xl font-headline font-bold text-primary">Upcoming Bookings (Next 7 Days)</h2>
+          </div>
+          {upcomingBookings.length > 0 ? (
+            <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
+              {upcomingBookings.map(e => (
+                <Card key={e.id} className="min-w-[280px] bg-white border-none shadow-md">
+                  <CardHeader className="p-4 pb-0">
+                    <Badge variant="secondary" className="w-fit mb-2">{format(parseISO(e.dateRequired), 'EEEE, MMM do')}</Badge>
+                    <CardTitle className="text-sm font-bold truncate">{e.typeOfEvent}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4 pt-2">
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {e.startTime}</span>
+                      <span className="flex items-center gap-1"><User className="h-3 w-3" /> {e.name}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-white/50 border border-dashed rounded-2xl p-6 text-center text-muted-foreground text-sm">
+              No confirmed bookings in the next 7 days.
+            </div>
+          )}
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
@@ -255,13 +297,35 @@ function KanbanCard({ enquiry, onUpdateStatus, onSendToSecurity, isList }: { enq
           <p className="text-[10px] opacity-60 flex items-center gap-1"><Calendar className="h-3 w-3" /> {enquiry.dateRequired}</p>
         </div>
         
+        <div className="flex justify-between items-center text-[10px] text-muted-foreground">
+           <span>{enquiry.startTime} - {enquiry.endTime}</span>
+           {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+        </div>
+
         {isExpanded && (
           <div className="pt-2 border-t mt-2 space-y-2 text-[10px] animate-in fade-in slide-in-from-top-1">
-            <p className="font-bold text-primary">{enquiry.typeOfEvent}</p>
-            <p className="flex items-center gap-1"><Clock className="h-3 w-3" /> {enquiry.startTime} - {enquiry.endTime}</p>
-            <p className="flex items-center gap-1"><Users className="h-3 w-3" /> Attendance: {enquiry.estimatedAttendance}</p>
-            <p className="flex items-center gap-1"><Mail className="h-3 w-3" /> {enquiry.emailAddress}</p>
-            <p className="bg-muted/30 p-2 rounded italic mt-2">{enquiry.additionalRequirements}</p>
+            <div className="flex items-start gap-2">
+              <Info className="h-3 w-3 text-muted-foreground shrink-0 mt-0.5" />
+              <div>
+                <p className="font-bold text-primary">{enquiry.typeOfEvent}</p>
+                <p className="flex items-center gap-1"><Users className="h-3 w-3" /> Attendance: {enquiry.estimatedAttendance}</p>
+              </div>
+            </div>
+            
+            <div className="flex items-start gap-2">
+              <Mail className="h-3 w-3 text-muted-foreground shrink-0 mt-0.5" />
+              <p className="truncate">{enquiry.emailAddress}</p>
+            </div>
+
+            <div className="flex items-start gap-2">
+              <MapPin className="h-3 w-3 text-muted-foreground shrink-0 mt-0.5" />
+              <p>{enquiry.postalAddress}, {enquiry.postcode}</p>
+            </div>
+
+            <div className="bg-muted/30 p-2 rounded italic mt-2">
+              <p className="font-bold mb-1 opacity-60">Requirements:</p>
+              {enquiry.additionalRequirements}
+            </div>
           </div>
         )}
 
