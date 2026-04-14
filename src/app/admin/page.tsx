@@ -5,7 +5,7 @@ import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, LayoutDashboard, Settings, LogOut, Inbox, User, Mail, Phone, Clock, Calendar, ShieldAlert, Key, LogIn, FileText, CheckCircle2, MoreVertical, ArrowRight, XCircle, Clock3, LayoutGrid, List, AlertCircle } from 'lucide-react';
+import { Loader2, LayoutDashboard, Settings, LogOut, Inbox, User, Mail, Phone, Clock, Calendar, ShieldAlert, Key, LogIn, FileText, CheckCircle2, MoreVertical, ArrowRight, XCircle, Clock3, LayoutGrid, List, AlertCircle, MapPin, Users, ChevronDown, ChevronUp } from 'lucide-react';
 import { useFirebase, useCollection, useMemoFirebase, useDoc } from '@/firebase';
 import { doc, collection, query, orderBy, updateDoc } from 'firebase/firestore';
 import { Badge } from '@/components/ui/badge';
@@ -357,30 +357,42 @@ export default function AdminPortal() {
 }
 
 function KanbanCard({ enquiry, onUpdateStatus }: { enquiry: any, onUpdateStatus: (id: string, s: string) => void }) {
+  const [isExpanded, setIsExpanded] = useState(false);
   const date = new Date(enquiry.submissionDateTime);
   
   return (
-    <Card className="border shadow-sm hover:shadow-md transition-all bg-white overflow-hidden group">
+    <Card 
+      className={cn(
+        "border shadow-sm hover:shadow-md transition-all bg-white overflow-hidden group cursor-pointer",
+        isExpanded ? "ring-2 ring-primary" : ""
+      )}
+      onClick={() => setIsExpanded(!isExpanded)}
+    >
       <div className="p-4 space-y-3">
         <div className="flex justify-between items-start">
           <span className="text-[10px] font-mono text-muted-foreground uppercase">ID: {enquiry.id.substring(0, 6)}</span>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-6 w-6">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-6 w-6"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <MoreVertical className="h-3 w-3" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="text-xs">
-              <DropdownMenuItem onClick={() => onUpdateStatus(enquiry.id, 'Pending')} className="gap-2">
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onUpdateStatus(enquiry.id, 'Pending'); }} className="gap-2">
                 <Clock3 className="h-3 w-3 text-amber-500" /> Mark as Pending
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onUpdateStatus(enquiry.id, 'Reviewed')} className="gap-2">
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onUpdateStatus(enquiry.id, 'Reviewed'); }} className="gap-2">
                 <FileText className="h-3 w-3 text-blue-500" /> Mark as Reviewed
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onUpdateStatus(enquiry.id, 'Confirmed')} className="gap-2">
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onUpdateStatus(enquiry.id, 'Confirmed'); }} className="gap-2">
                 <CheckCircle2 className="h-3 w-3 text-green-500" /> Mark as Confirmed
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onUpdateStatus(enquiry.id, 'Rejected')} className="gap-2">
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onUpdateStatus(enquiry.id, 'Rejected'); }} className="gap-2">
                 <XCircle className="h-3 w-3 text-red-500" /> Mark as Rejected
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -388,7 +400,10 @@ function KanbanCard({ enquiry, onUpdateStatus }: { enquiry: any, onUpdateStatus:
         </div>
 
         <div>
-          <h4 className="font-bold text-sm text-primary line-clamp-1">{enquiry.name}</h4>
+          <div className="flex items-center justify-between">
+            <h4 className="font-bold text-sm text-primary line-clamp-1">{enquiry.name}</h4>
+            {isExpanded ? <ChevronUp className="h-3 w-3 text-muted-foreground" /> : <ChevronDown className="h-3 w-3 text-muted-foreground" />}
+          </div>
           <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
             <Calendar className="h-3 w-3" /> {enquiry.dateRequired}
           </p>
@@ -403,8 +418,41 @@ function KanbanCard({ enquiry, onUpdateStatus }: { enquiry: any, onUpdateStatus:
           </p>
         </div>
 
-        {enquiry.additionalRequirements && enquiry.additionalRequirements !== "None provided" && (
-          <p className="text-[10px] italic text-muted-foreground line-clamp-2 mt-2 bg-amber-50 p-1.5 rounded">
+        {isExpanded && (
+           <div className="pt-2 border-t mt-2 space-y-3 animate-in fade-in slide-in-from-top-1">
+              <div className="grid grid-cols-1 gap-2 text-[10px]">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Mail className="h-3 w-3" /> {enquiry.emailAddress}
+                </div>
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Phone className="h-3 w-3" /> {enquiry.phoneNumber}
+                </div>
+                <div className="flex items-start gap-2 text-muted-foreground">
+                  <MapPin className="h-3 w-3 mt-0.5" /> 
+                  <span>{enquiry.postalAddress}, {enquiry.postcode}</span>
+                </div>
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Users className="h-3 w-3" /> Attendance: {enquiry.estimatedAttendance}
+                </div>
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <FileText className="h-3 w-3" /> Contact: {enquiry.preferredContact}
+                </div>
+                <div className="flex items-center gap-2 text-muted-foreground">
+                   <Clock className="h-3 w-3" /> Submitted: {date.toLocaleString()}
+                </div>
+              </div>
+              
+              {enquiry.additionalRequirements && enquiry.additionalRequirements !== "None provided" && (
+                <div className="bg-amber-50 p-2 rounded text-[10px] space-y-1 border border-amber-100">
+                  <p className="font-bold text-amber-800">Additional Requirements:</p>
+                  <p className="italic text-amber-900">"{enquiry.additionalRequirements}"</p>
+                </div>
+              )}
+           </div>
+        )}
+
+        {!isExpanded && enquiry.additionalRequirements && enquiry.additionalRequirements !== "None provided" && (
+          <p className="text-[10px] italic text-muted-foreground line-clamp-1 mt-2 bg-amber-50 p-1 rounded">
             "{enquiry.additionalRequirements}"
           </p>
         )}
@@ -420,7 +468,7 @@ function KanbanCard({ enquiry, onUpdateStatus }: { enquiry: any, onUpdateStatus:
               variant="ghost" 
               size="icon" 
               className="h-6 w-6 text-green-600 hover:text-green-700 hover:bg-green-50"
-              onClick={() => onUpdateStatus(enquiry.id, 'Confirmed')}
+              onClick={(e) => { e.stopPropagation(); onUpdateStatus(enquiry.id, 'Confirmed'); }}
               title="Confirm"
             >
               <CheckCircle2 className="h-4 w-4" />
@@ -431,7 +479,7 @@ function KanbanCard({ enquiry, onUpdateStatus }: { enquiry: any, onUpdateStatus:
               variant="ghost" 
               size="icon" 
               className="h-6 w-6 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-              onClick={() => onUpdateStatus(enquiry.id, 'Reviewed')}
+              onClick={(e) => { e.stopPropagation(); onUpdateStatus(enquiry.id, 'Reviewed'); }}
               title="Review"
             >
               <ArrowRight className="h-4 w-4" />
