@@ -2,7 +2,7 @@
 'use server';
 
 import ical from 'node-ical';
-import { startOfWeek, endOfWeek, isWithinInterval, addDays, format } from 'date-fns';
+import { startOfWeek, endOfWeek, isWithinInterval, addDays, subDays, addMonths, format } from 'date-fns';
 
 export type LiveEvent = {
   id: string;
@@ -17,37 +17,40 @@ export type LiveEvent = {
 const ICAL_URL = 'https://v2.hallmaster.co.uk/api/ical/GetICalStream?HallId=10228';
 
 /**
- * Fetches and parses the Hallmaster iCal stream for the current week.
- * This runs on the server to avoid CORS issues.
+ * Fetches and parses the Hallmaster iCal stream.
+ * Returns a window of events to support the week-by-week navigation.
  */
 export async function getLiveCalendarEventsAction() {
   try {
     const events = await ical.async.fromURL(ICAL_URL);
     
     const now = new Date();
-    const weekStart = startOfWeek(now, { weekStartsOn: 1 }); // Monday
-    const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
+    // Fetch a wider range to support navigation (2 weeks back, 6 months forward)
+    const rangeStart = subDays(startOfWeek(now, { weekStartsOn: 1 }), 14);
+    const rangeEnd = addMonths(now, 6);
 
     const processedEvents: LiveEvent[] = [];
 
     Object.values(events).forEach((event) => {
       if (event.type === 'VEVENT') {
         const start = new Date(event.start);
-        const end = new Date(event.end);
-
-        // Filter for events in the current week (or just general upcoming)
-        if (isWithinInterval(start, { start: weekStart, end: addDays(weekEnd, 14) })) {
+        
+        // Only include events within our navigation window
+        if (isWithinInterval(start, { start: rangeStart, end: rangeEnd })) {
           // Clean descriptions: Remove Hallmaster booking links and redundant URLs
           const rawDescription = event.description || '';
+          
+          // Pattern to match Hallmaster booking links and general URLs
           const cleanedDescription = rawDescription
             .replace(/https:\/\/v2\.hallmaster\.co\.uk\/Scheduler\/ViewBooking\/\S+/g, '')
+            .replace(/http[s]?:\/\/\S+/g, '') // Remove any other links
             .trim();
 
           processedEvents.push({
-            id: event.uid,
+            id: event.uid || Math.random().toString(36),
             summary: event.summary,
             start: start.toISOString(),
-            end: end.toISOString(),
+            end: new Date(event.end).toISOString(),
             description: cleanedDescription,
             location: event.location || '',
             dayOfWeek: format(start, 'EEEE'),
