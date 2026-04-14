@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview An AI flow to format a review request email for the security team.
@@ -30,23 +29,21 @@ const formatReviewEmailFlow = ai.defineFlow(
   },
   async (input) => {
     const { output } = await ai.generate({
-      prompt: `You are an automated system for the Bishops Hull Hub. 
-      Format a "Review Requested" email for our Security Team.
+      prompt: `You are an automated administrative assistant for the Bishops Hull Hub. 
+      Format a "Security Review Requested" email for our Security Team.
       
-      The email needs to present the booking details and ask them to confirm they are happy for this event to proceed.
+      The Security Team needs full visibility into the event details to decide if the booking is safe and appropriate for our community hub.
       
-      Details:
-      - Event: ${input.enquiryData.typeOfEvent}
-      - Date: ${input.enquiryData.dateRequired}
-      - Times: ${input.enquiryData.startTime} to ${input.enquiryData.endTime}
-      - Contact: ${input.enquiryData.name}
-      - Attendance: ${input.enquiryData.estimatedAttendance}
+      Please format an email that includes:
+      1. A clear subject line including the event and date.
+      2. A professional HTML body that lists EVERY detail from the enquiry below.
+      3. A prominent "Review & Approve Event" call-to-action button linking to: ${input.reviewUrl}
+      4. A matching plain text version.
+
+      Event Data:
+      ${JSON.stringify(input.enquiryData, null, 2)}
       
-      Include a prominent call-to-action button or link pointing to: ${input.reviewUrl}
-      
-      The button text should say "Review & Approve Event".
-      
-      Make the tone professional and urgent.`,
+      Ensure the tone is professional, clear, and emphasizes the importance of their review.`,
       output: { schema: FormatReviewEmailOutputSchema },
     });
     return output!;
