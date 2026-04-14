@@ -1,10 +1,11 @@
+
 "use client";
 
 import { useEffect, useState, use } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useFirebase, useDoc } from '@/firebase';
+import { useFirebase, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 import { Loader2, ShieldCheck, CheckCircle2, Clock, Calendar, User, Info, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -18,12 +19,13 @@ export default function SecurityReviewPage({ params }: { params: Promise<{ id: s
   const [isUpdating, setIsUpdating] = useState(false);
   const [hasUpdated, setHasUpdated] = useState(false);
 
-  const enquiryRef = doc(firestore, 'booking_enquiries', id);
+  const enquiryRef = useMemoFirebase(() => doc(firestore, 'booking_enquiries', id), [firestore, id]);
   const { data: enquiry, isLoading, error } = useDoc(enquiryRef);
 
   const handleApprove = async () => {
     setIsUpdating(true);
     try {
+      if (!enquiryRef) return;
       await updateDoc(enquiryRef, { status: 'Reviewed' });
       setHasUpdated(true);
       toast({ title: "Review Submitted", description: "This booking has been marked as Reviewed." });
