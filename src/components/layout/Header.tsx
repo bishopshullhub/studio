@@ -37,6 +37,7 @@ export default function Header() {
     setIsOpen(false);
   };
 
+  // Auth-dependent UI should only show after mount to prevent hydration errors
   const isRealUser = mounted && user && !user.isAnonymous;
 
   return (
@@ -62,21 +63,25 @@ export default function Header() {
           
           <div className="h-6 w-px bg-border mx-2" />
 
-          {isRealUser ? (
-            <div className="flex items-center gap-4">
-              <Button asChild variant="ghost" size="sm" className="gap-2 text-primary">
-                <Link href="/admin"><ShieldCheck className="h-4 w-4" /> Admin</Link>
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleLogout} className="gap-2">
-                <LogOut className="h-4 w-4" /> Sign Out
-              </Button>
-            </div>
-          ) : mounted ? (
-            <Button asChild variant="outline" size="sm" className="gap-2">
-              <Link href="/login"><LogIn className="h-4 w-4" /> Login</Link>
-            </Button>
+          {mounted ? (
+            <>
+              {isRealUser ? (
+                <div className="flex items-center gap-4">
+                  <Button asChild variant="ghost" size="sm" className="gap-2 text-primary">
+                    <Link href="/admin"><ShieldCheck className="h-4 w-4" /> Admin</Link>
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={handleLogout} className="gap-2">
+                    <LogOut className="h-4 w-4" /> Sign Out
+                  </Button>
+                </div>
+              ) : (
+                <Button asChild variant="outline" size="sm" className="gap-2">
+                  <Link href="/login"><LogIn className="h-4 w-4" /> Login</Link>
+                </Button>
+              )}
+            </>
           ) : (
-            <div className="w-20" /> // Spacer for layout stability
+            <div className="w-20" /> /* Placeholder to maintain layout during hydration */
           )}
 
           <Button asChild variant="default" className="bg-primary hover:bg-primary/90 shadow-md">
@@ -112,20 +117,24 @@ export default function Header() {
         ))}
         
         <div className="pt-4 space-y-3">
-          {isRealUser ? (
+          {mounted && (
             <>
-              <Button asChild variant="outline" className="w-full gap-2 justify-start" onClick={() => setIsOpen(false)}>
-                <Link href="/admin"><ShieldCheck className="h-5 w-5" /> Admin Portal</Link>
-              </Button>
-              <Button variant="ghost" className="w-full gap-2 justify-start text-destructive" onClick={handleLogout}>
-                <LogOut className="h-5 w-5" /> Sign Out
-              </Button>
+              {isRealUser ? (
+                <>
+                  <Button asChild variant="outline" className="w-full gap-2 justify-start" onClick={() => setIsOpen(false)}>
+                    <Link href="/admin"><ShieldCheck className="h-5 w-5" /> Admin Portal</Link>
+                  </Button>
+                  <Button variant="ghost" className="w-full gap-2 justify-start text-destructive" onClick={handleLogout}>
+                    <LogOut className="h-5 w-5" /> Sign Out
+                  </Button>
+                </>
+              ) : (
+                <Button asChild variant="outline" className="w-full gap-2 justify-start" onClick={() => setIsOpen(false)}>
+                  <Link href="/login"><LogIn className="h-5 w-5" /> Portal Login</Link>
+                </Button>
+              )}
             </>
-          ) : mounted ? (
-            <Button asChild variant="outline" className="w-full gap-2 justify-start" onClick={() => setIsOpen(false)}>
-              <Link href="/login"><LogIn className="h-5 w-5" /> Portal Login</Link>
-            </Button>
-          ) : null}
+          )}
           <Button asChild className="w-full h-12 text-lg shadow-lg" onClick={() => setIsOpen(false)}>
             <Link href="/hire#booking-form">Book the Hub</Link>
           </Button>
