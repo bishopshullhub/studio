@@ -8,9 +8,9 @@ import { Heart, Landmark, Sprout, Footprints, ExternalLink, Eye, Music, Wind, Ha
 export default function CommunityPage() {
   const gardenImages = PlaceHolderImages.filter(img => img.id.startsWith('garden-'));
   const sensoryMain = PlaceHolderImages.find(img => img.id === 'sensory-trail-main');
-  const phase1Img = PlaceHolderImages.find(img => img.id === 'sensory-phase-1');
-  const phase2Img = PlaceHolderImages.find(img => img.id === 'sensory-phase-2');
-  const phase3Img = PlaceHolderImages.find(img => img.id === 'sensory-phase-3');
+  // const phase1Img = PlaceHolderImages.find(img => img.id === 'sensory-phase-1');
+  // const phase2Img = PlaceHolderImages.find(img => img.id === 'sensory-phase-2');
+  // const phase3Img = PlaceHolderImages.find(img => img.id === 'sensory-phase-3');
 
   return (
     <div className="container mx-auto px-4 py-16 space-y-24">
@@ -68,7 +68,7 @@ export default function CommunityPage() {
           </div>
           <div className="relative aspect-video rounded-[2.5rem] overflow-hidden shadow-xl border-4 border-white">
             <Image 
-              src={phase1Img?.imageUrl || "https://picsum.photos/seed/sensory-2/600/400"} 
+              src="/Phase 1.jpg" 
               alt="Phase 1 Connection" 
               fill 
               className="object-cover"
@@ -80,7 +80,7 @@ export default function CommunityPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center lg:flex-row-reverse">
           <div className="relative aspect-video rounded-[2.5rem] overflow-hidden shadow-xl border-4 border-white lg:order-2">
             <Image 
-              src={phase2Img?.imageUrl || "https://picsum.photos/seed/sensory-3/600/400"} 
+              src="/Phase 2.jpg" 
               alt="Phase 2 Amphitheatre" 
               fill 
               className="object-cover"
@@ -119,7 +119,7 @@ export default function CommunityPage() {
           </div>
           <div className="relative aspect-video rounded-[2.5rem] overflow-hidden shadow-xl border-4 border-white">
             <Image 
-              src={phase3Img?.imageUrl || "https://picsum.photos/seed/sensory-4/600/400"} 
+              src="/Phase 3.jpg" 
               alt="Phase 3 Natural Play" 
               fill 
               className="object-cover"
