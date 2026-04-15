@@ -1,43 +1,66 @@
+
 'use server';
 
 import { formatEnquiryEmail } from '@/ai/flows/format-enquiry-email-flow';
 import { formatReviewEmail } from '@/ai/flows/format-review-email-flow';
+import { formatCustomerConfirmationEmail } from '@/ai/flows/format-customer-confirmation-email-flow';
 import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const ADMIN_EMAIL = 'bishopshullhub@gmail.com';
 
 /**
- * Server Action to handle the logic of sending the enquiry email to administrators.
+ * Server Action to handle the logic of sending the enquiry email to administrators
+ * and a confirmation email to the enquirer.
  */
 export async function sendEnquiryEmailAction(enquiryData: any) {
   try {
-    const formattedEmail = await formatEnquiryEmail({ enquiryData });
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const faqUrl = `${baseUrl}/faq`;
+
+    // 1. Format and send Admin Notification
+    const adminEmail = await formatEnquiryEmail({ enquiryData });
+    
+    // 2. Format and send Customer Confirmation
+    const customerEmail = await formatCustomerConfirmationEmail({ enquiryData, faqUrl });
 
     if (process.env.RESEND_API_KEY && process.env.RESEND_API_KEY !== 're_your_api_key_here') {
+      // Send to Admin
       await resend.emails.send({
-        from: 'Hub System <onboarding@resend.dev>',
+        from: 'Hub Bookings <onboarding@resend.dev>',
         to: ADMIN_EMAIL,
-        subject: formattedEmail.subject,
-        html: formattedEmail.htmlBody,
-        text: formattedEmail.textBody,
+        subject: adminEmail.subject,
+        html: adminEmail.htmlBody,
+        text: adminEmail.textBody,
+      });
+
+      // Send to Customer (Note: In Resend restricted mode, this still goes to verified ADMIN_EMAIL)
+      // We log the target recipient in comments or logs for simulation
+      await resend.emails.send({
+        from: 'Bishops Hull Hub <onboarding@resend.dev>',
+        to: ADMIN_EMAIL, // Forcing to Admin due to Resend restrictions, but in production this would be enquiryData.emailAddress
+        subject: customerEmail.subject,
+        html: customerEmail.htmlBody,
+        text: customerEmail.textBody,
       });
     } else {
-      console.log('--- ADMIN EMAIL SIMULATION ---');
-      console.log('Subject:', formattedEmail.subject);
-      console.log('Body:', formattedEmail.textBody);
+      console.log('--- EMAIL SIMULATION ---');
+      console.log('To Admin:', ADMIN_EMAIL);
+      console.log('Subject:', adminEmail.subject);
+      console.log('---');
+      console.log('To Customer:', enquiryData.emailAddress);
+      console.log('Subject:', customerEmail.subject);
     }
     
     return { success: true };
   } catch (error: any) {
-    console.error('Failed to send admin email:', error);
-    return { success: false, error: error.message || 'Failed to process email' };
+    console.error('Failed to send emails:', error);
+    return { success: false, error: error.message || 'Failed to process emails' };
   }
 }
 
 /**
  * Server Action to send review requests to the Security Team.
- * Note: While in Resend testing mode, we send to the verified ADMIN_EMAIL.
  */
 export async function sendSecurityReviewEmailAction(enquiryData: any, securityContacts: any[], baseUrl: string) {
   try {
@@ -53,7 +76,6 @@ export async function sendSecurityReviewEmailAction(enquiryData: any, securityCo
       formattedEmail = await formatReviewEmail({ enquiryData, reviewUrl });
     } catch (aiError: any) {
       console.error('AI Formatting failed, using fallback:', aiError);
-      // Fallback formatting if AI fails - now significantly more detailed
       formattedEmail = {
         subject: `Security Review Required: ${enquiryData.typeOfEvent} on ${enquiryData.dateRequired}`,
         htmlBody: `
@@ -102,7 +124,6 @@ Review here: ${reviewUrl}
       };
     }
 
-    // While Resend domain is unverified, we must send to the account owner (admin)
     const recipients = [ADMIN_EMAIL];
 
     if (process.env.RESEND_API_KEY && !process.env.RESEND_API_KEY.includes('re_your_api_key')) {
