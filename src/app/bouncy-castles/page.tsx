@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle2, Ruler, ShieldCheck, Zap, Camera } from 'lucide-react';
+import { CheckCircle2, Ruler, ShieldCheck, Zap, Camera, ExternalLink, Star } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -21,7 +21,7 @@ export default function BouncyCastlesPage() {
         <Card className="border-none shadow-lg bg-white">
           <CardHeader className="bg-primary/5 border-b border-primary/10">
             <CardTitle className="flex items-center gap-2 text-primary">
-              <Ruler className="h-5 w-5" /> Indoor Use
+              <Ruler className="h-5 w-5" /> Indoor Use (Preferred)
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6 space-y-4">
@@ -46,7 +46,7 @@ export default function BouncyCastlesPage() {
         <Card className="border-none shadow-lg bg-white">
           <CardHeader className="bg-accent/10 border-b border-accent/20">
             <CardTitle className="flex items-center gap-2 text-primary">
-              <Zap className="h-5 w-5" /> Outdoor Use
+              <Zap className="h-5 w-5" /> Outdoor Use (Summer Only)
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6 space-y-4">
@@ -68,6 +68,62 @@ export default function BouncyCastlesPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Recommended Suppliers Section */}
+      <section className="space-y-8">
+        <div className="space-y-2">
+          <h2 className="text-3xl font-headline font-bold text-primary">Recommended Local Suppliers</h2>
+          <p className="text-muted-foreground">
+            There are some great local companies that you can hire bouncy castles from, two we would recommend are linked below.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card className="border shadow-sm hover:shadow-md transition-all overflow-hidden bg-white group">
+            <CardContent className="p-6 flex flex-col h-full space-y-4">
+              <div className="flex items-center gap-4">
+                <div className="relative h-12 w-24 shrink-0 bg-muted/20 rounded p-1 flex items-center justify-center overflow-hidden">
+                  <Image 
+                    src="https://www.jsinflatables.co.uk/images/logo.png" 
+                    alt="JS Inflatables Logo" 
+                    width={96}
+                    height={48}
+                    className="object-contain"
+                  />
+                </div>
+                <h3 className="text-xl font-bold text-primary">JS Inflatables</h3>
+              </div>
+              <p className="text-sm text-muted-foreground flex-1">
+                A reliable local provider with a wide selection of inflatables suitable for both indoor and outdoor events at the Hub.
+              </p>
+              <Button asChild variant="outline" className="w-full group-hover:bg-primary group-hover:text-white transition-colors">
+                <a href="https://www.jsinflatables.co.uk/categories/bouncy-castles.php" target="_blank" rel="noopener noreferrer">
+                  Visit JS Inflatables <ExternalLink className="ml-2 h-4 w-4" />
+                </a>
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="border shadow-sm hover:shadow-md transition-all overflow-hidden bg-white group">
+            <CardContent className="p-6 flex flex-col h-full space-y-4">
+              <div className="flex items-center gap-4">
+                <div className="h-12 w-12 rounded-full bg-accent/10 flex items-center justify-center text-primary">
+                  <Star className="h-6 w-6" />
+                </div>
+                <h3 className="text-xl font-bold text-primary">Bounce-On</h3>
+              </div>
+              <p className="text-sm text-muted-foreground flex-1">
+                Highly recommended for their quality service and range of castles that fit perfectly within our hall's height restrictions.
+              </p>
+              <Button asChild variant="outline" className="w-full group-hover:bg-primary group-hover:text-white transition-colors">
+                <a href="https://www.bounce-on.co.uk/" target="_blank" rel="noopener noreferrer">
+                  Visit Bounce-On <ExternalLink className="ml-2 h-4 w-4" />
+                </a>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
 
       {/* Example Image Section */}
       <section className="space-y-6">
