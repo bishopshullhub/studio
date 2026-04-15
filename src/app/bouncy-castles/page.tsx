@@ -107,8 +107,14 @@ export default function BouncyCastlesPage() {
           <Card className="border shadow-sm hover:shadow-md transition-all overflow-hidden bg-white group">
             <CardContent className="p-6 flex flex-col h-full space-y-4">
               <div className="flex items-center gap-4">
-                <div className="h-12 w-12 rounded-full bg-accent/10 flex items-center justify-center text-primary">
-                  <Star className="h-6 w-6" />
+                <div className="relative h-12 w-24 shrink-0 bg-muted/20 rounded p-1 flex items-center justify-center overflow-hidden">
+                  <Image 
+                    src="https://www.bounce-on.co.uk/theme/logo@1x.png" 
+                    alt="Bounce-On Logo" 
+                    width={96}
+                    height={48}
+                    className="object-contain"
+                  />
                 </div>
                 <h3 className="text-xl font-bold text-primary">Bounce-On</h3>
               </div>
