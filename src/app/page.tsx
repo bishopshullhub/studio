@@ -209,9 +209,6 @@ export default function HomePage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild size="lg" variant="secondary" className="text-base md:text-lg rounded-xl h-12 md:h-14">
-              <Link href="/hire">View Pricing & Specs</Link>
-            </Button>
-            <Button asChild size="lg" variant="outline" className="border-white text-white hover:bg-white/10 text-base md:text-lg rounded-xl h-12 md:h-14">
               <Link href="/hire#booking-form">Inquire Now</Link>
             </Button>
           </div>

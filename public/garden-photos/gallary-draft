@@ -1,0 +1,85 @@
+"use client";
+import { useState } from "react";
+import Image from "next/image";
+import { motion, AnimatePresence } from "framer-motion";
+import Lightbox from "yet-another-react-lightbox";
+import "yet-another-react-lightbox/styles.css";
+
+// Organize your public folder into subfolders matching these keys
+const galleryData = {
+  "May 2023": ["/garden-photos/may/P5231430.jpg", "/garden-photos/may/P5231449.jpg", "/garden-photos/may/P5231448.jpg"],
+  "June 2023": ["/garden-photos/june/P6071509.jpg", "/garden-photos/june/P6071508.jpg", "/garden-photos/june/P6071506.jpg"],
+  "July 2023": ["/garden-photos/july/20230701_113116.jpg", "/garden-photos/july/20230701_113228.jpg"],
+  "August 2023": ["/garden-photos/august/P8041547.jpg", "/garden-photos/august/P8041548.jpg"],
+  "Christmas 2023": ["/garden-photos/christmas/20231202_092650.jpg", "/garden-photos/christmas/20231202_092731.jpg"]
+};
+
+export default function SeasonGallery() {
+  const [activeTab, setActiveTab] = useState("May 2023");
+  const [open, setOpen] = useState(false);
+  const [index, setIndex] = useState(0);
+
+  const currentPhotos = galleryData[activeTab];
+
+  return (
+    <section className="bg-white py-16 px-6">
+      <div className="max-w-7xl mx-auto">
+        <h2 className="text-4xl font-bold text-center text-emerald-900 mb-4">Hub Gardens Through the Seasons</h2>
+        <p className="text-center text-gray-500 mb-10">A visual journey of our community garden project.</p>
+
+        {/* Tab Navigation */}
+        <div className="flex flex-wrap justify-center gap-3 mb-12">
+          {Object.keys(galleryData).map((season) => (
+            <button
+              key={season}
+              onClick={() => setActiveTab(season)}
+              className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-300 ${
+                activeTab === season 
+                  ? "bg-emerald-600 text-white shadow-md" 
+                  : "bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
+              }`}
+            >
+              {season}
+            </button>
+          ))}
+        </div>
+
+        {/* Image Grid */}
+        <motion.div 
+          layout
+          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
+        >
+          <AnimatePresence mode="popLayout">
+            {currentPhotos.map((src, i) => (
+              <motion.div
+                key={src}
+                layout
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                className="relative h-64 overflow-hidden rounded-xl cursor-pointer"
+                onClick={() => { setIndex(i); setOpen(true); }}
+              >
+                <Image
+                  src={src}
+                  alt={`Garden scene ${activeTab}`}
+                  fill
+                  className="object-cover hover:scale-110 transition-transform duration-500"
+                  sizes="(max-width: 768px) 50vw, 25vw"
+                />
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </motion.div>
+
+        {/* Lightbox for Zoom */}
+        <Lightbox
+          open={open}
+          close={() => setOpen(false)}
+          index={index}
+          slides={currentPhotos.map(src => ({ src }))}
+        />
+      </div>
+    </section>
+  );
+}

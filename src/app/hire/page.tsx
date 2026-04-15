@@ -274,25 +274,28 @@ ${submittedData.additionalRequirements}
       </section>
 
       <div className="container mx-auto px-4 -mt-10 space-y-8 md:space-y-12">
-        <div className="max-w-4xl mx-auto space-y-8 md:space-y-12">
+        <div className="max-w-4xl mx-auto">
           {/* Pricing Grid - Optimized for Mobile */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
             {[
-              { label: "Hourly", value: "£18.00" },
-              { label: "Day Cap", value: "£140.00" },
-              { label: "Day Dep.", value: "£50.00" },
-              { label: "Eve Dep.", value: "£100.00" },
+              { label: "Hourly Hire", value: "£18" },
+              { label: "Day Hire", value: "£140.00", description: "Over 8 hours within a day"},
+              { label: "Day Deposit", value: "£50.00" },
+              { label: "Eve Deposit", value: "£100.00" },
             ].map((item, idx) => (
               <Card key={idx} className="border-none shadow-md bg-white overflow-hidden">
                 <CardContent className="p-3 md:p-6 flex flex-col items-center justify-center text-center">
                   <span className="text-[9px] md:text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">{item.label}</span>
                   <span className="text-xl md:text-3xl font-bold text-primary">{item.value}</span>
+                  {'description' in item && <span className="text-[9px] md:text-[11px] text-muted-foreground mt-1 leading-tight">{item.description}</span>}
                 </CardContent>
               </Card>
             ))}
           </div>
 
-          <section id="booking-form" className="scroll-mt-24">
+        </div>
+
+        <section id="booking-form" className="scroll-mt-24 max-w-7xl mx-auto">
             {/* Form Container - Reduced Mobile Padding */}
             <div className="bg-white rounded-2xl md:rounded-3xl p-4 md:p-8 shadow-xl border border-border">
               <div className="mb-6 md:mb-10 space-y-4">
@@ -584,8 +587,9 @@ ${submittedData.additionalRequirements}
                 </form>
               </Form>
             </div>
-          </section>
+        </section>
 
+        <div className="max-w-4xl mx-auto">
           {/* Overviews - Reduced Mobile Padding */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
             <Card className="border-none shadow-lg bg-white">

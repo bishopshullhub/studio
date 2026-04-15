@@ -1,12 +1,10 @@
 
 import Image from 'next/image';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { Heart, Landmark, Sprout, Footprints, ExternalLink, Eye, Music, Wind, Hand, TreePine, Accessibility, Download, Info } from 'lucide-react';
+import { Heart, Landmark, Music, Wind, Hand, TreePine, Accessibility, Download, Users } from 'lucide-react';
 
 export default function CommunityPage() {
-  const gardenImages = PlaceHolderImages.filter(img => img.id.startsWith('garden-'));
   const sensoryMain = PlaceHolderImages.find(img => img.id === 'sensory-trail-main');
   // const phase1Img = PlaceHolderImages.find(img => img.id === 'sensory-phase-1');
   // const phase2Img = PlaceHolderImages.find(img => img.id === 'sensory-phase-2');
@@ -21,6 +19,29 @@ export default function CommunityPage() {
           The Hub is more than just a building; it's a testament to what our village can achieve together. 
           Discover how you can get involved and support our ongoing projects.
         </p>
+      </section>
+
+      {/* Volunteer Section */}
+      <section className="bg-primary/5 border border-primary/10 rounded-[2.5rem] p-8 md:p-12 flex flex-col md:flex-row items-center gap-8">
+        <div className="h-20 w-20 bg-primary text-primary-foreground rounded-3xl flex items-center justify-center shrink-0 shadow-lg">
+          <Users className="h-10 w-10" />
+        </div>
+        <div className="flex-1 space-y-3">
+          <h2 className="text-2xl md:text-3xl font-headline font-bold text-primary">Volunteer with the Hub</h2>
+          <p className="text-lg text-muted-foreground leading-relaxed">
+            There are so many ways to help keep the Hub running — from supporting the committee and attending meetings, to welcoming hirers and helping with day-to-day operations.
+            We'd love to get to know you and find a role that suits you perfectly.
+          </p>
+          <p className="text-lg text-muted-foreground leading-relaxed">
+            Whether it's just an hour here and there or something more involved, every bit of help makes a real difference.
+            Let us know you're interested and we'll be glad to have you on the team.
+          </p>
+          <div className="pt-2">
+            <Button asChild size="lg" className="rounded-xl px-8">
+              <a href="mailto:bishopshullhub@gmail.com?subject=Volunteer%20Interest">Get in Touch</a>
+            </Button>
+          </div>
+        </div>
       </section>
 
       {/* Sensory Trail - The Main Feature */}
@@ -169,44 +190,6 @@ export default function CommunityPage() {
             engraved and placed in our special tribute wall. A perfect gift or memorial for a loved one.
           </p>
           <Button size="lg" className="bg-primary hover:bg-primary/90 rounded-xl px-8">Order Your Brick</Button>
-        </div>
-      </section>
-
-      {/* Community Garden Gallery */}
-      <section id="garden" className="space-y-12 scroll-mt-24">
-        <div className="flex flex-col md:flex-row justify-between items-end gap-6">
-          <div className="max-w-2xl space-y-4">
-            <div className="flex items-center gap-2 text-primary font-bold uppercase tracking-widest text-sm">
-              <Sprout className="h-5 w-5" /> Our Project
-            </div>
-            <h2 className="text-3xl md:text-4xl font-headline font-bold text-primary">Gardens Through the Seasons</h2>
-            <p className="text-lg text-muted-foreground">
-              Meticulously maintained by our dedicated volunteers, the Hub gardens provide a space for quiet reflection and community gathering.
-            </p>
-          </div>
-          <Button variant="outline" className="shrink-0 rounded-xl">
-            Volunteer as a Gardener <ExternalLink className="ml-2 h-4 w-4" />
-          </Button>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {gardenImages.map((img, idx) => (
-            <div 
-              key={idx} 
-              className="group relative aspect-square rounded-3xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-500"
-            >
-              <Image
-                src={img.imageUrl}
-                alt={img.description}
-                fill
-                className="object-cover transition-transform duration-700 group-hover:scale-110"
-                data-ai-hint={img.imageHint}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end p-6 text-center">
-                <p className="text-white text-sm font-medium w-full">{img.description}</p>
-              </div>
-            </div>
-          ))}
         </div>
       </section>
 
