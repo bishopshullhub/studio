@@ -8,9 +8,9 @@ import { Heart, Landmark, Sprout, Footprints, ExternalLink, Eye, Music, Wind, Ha
 export default function CommunityPage() {
   const gardenImages = PlaceHolderImages.filter(img => img.id.startsWith('garden-'));
   const sensoryMain = PlaceHolderImages.find(img => img.id === 'sensory-trail-main');
-  const sensoryWillow = PlaceHolderImages.find(img => img.id === 'sensory-willow');
-  const sensoryWildflower = PlaceHolderImages.find(img => img.id === 'sensory-wildflower');
-  const sensoryHerbs = PlaceHolderImages.find(img => img.id === 'sensory-herbs');
+  const phase1Img = PlaceHolderImages.find(img => img.id === 'sensory-phase-1');
+  const phase2Img = PlaceHolderImages.find(img => img.id === 'sensory-phase-2');
+  const phase3Img = PlaceHolderImages.find(img => img.id === 'sensory-phase-3');
 
   return (
     <div className="container mx-auto px-4 py-16 space-y-24">
@@ -47,7 +47,6 @@ export default function CommunityPage() {
                   <Download className="mr-2 h-5 w-5" /> Download Trail Map
                 </a>
               </Button>
-            
             </div>
           </div>
         </div>
@@ -55,24 +54,25 @@ export default function CommunityPage() {
         {/* Trail Narrative Sections */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div className="space-y-6">
-            <h3 className="text-3xl font-headline font-bold text-primary">Station 1: The Willow Tunnel</h3>
+            <h3 className="text-3xl font-headline font-bold text-primary">Phase 1: Connection and Access</h3>
             <p className="text-lg text-muted-foreground leading-relaxed">
-              Walk through our living willow tunnel. As the seasons change, so does the tunnel—from the bare structures of winter to the lush green canopy of summer. It provides a natural shade and a unique tactile experience for visitors.
+              Provision of access steps and ramp from the Hub and Pavilion up to the top path and play park.
+              Additional planting and hedgerows to increase natural greenery.
             </p>
             <div className="p-6 bg-muted/50 rounded-2xl border border-border flex gap-4">
               <div className="h-10 w-10 bg-primary/10 text-primary rounded-full flex items-center justify-center shrink-0">
                 <Hand className="h-5 w-5" />
               </div>
-              <p className="text-sm italic">Feel the smooth bark and the flexible branches that form this living structure.</p>
+              <p className="text-sm italic">Seamless connection through the natural environment.</p>
             </div>
           </div>
           <div className="relative aspect-video rounded-[2.5rem] overflow-hidden shadow-xl border-4 border-white">
             <Image 
-              src={sensoryWillow?.imageUrl || "https://picsum.photos/seed/sensory-2/600/400"} 
-              alt="Living Willow Tunnel" 
+              src={phase1Img?.imageUrl || "https://picsum.photos/seed/sensory-2/600/400"} 
+              alt="Phase 1 Connection" 
               fill 
               className="object-cover"
-              data-ai-hint="willow tunnel"
+              data-ai-hint="garden path"
             />
           </div>
         </div>
@@ -80,17 +80,18 @@ export default function CommunityPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center lg:flex-row-reverse">
           <div className="relative aspect-video rounded-[2.5rem] overflow-hidden shadow-xl border-4 border-white lg:order-2">
             <Image 
-              src={sensoryWildflower?.imageUrl || "https://picsum.photos/seed/sensory-3/600/400"} 
-              alt="Wildflower Meadow" 
+              src={phase2Img?.imageUrl || "https://picsum.photos/seed/sensory-3/600/400"} 
+              alt="Phase 2 Amphitheatre" 
               fill 
               className="object-cover"
-              data-ai-hint="wildflower meadow"
+              data-ai-hint="outdoor seating"
             />
           </div>
           <div className="space-y-6 lg:order-1">
-            <h3 className="text-3xl font-headline font-bold text-primary">Station 2: The Wildflower Meadow</h3>
+            <h3 className="text-3xl font-headline font-bold text-primary">Phase 2: Planting and Amphitheatre</h3>
             <p className="text-lg text-muted-foreground leading-relaxed">
-              Our meadow is a riot of color during the summer months. It's not just beautiful to look at; it's a vital habitat for local pollinators. Listen to the hum of bees and the gentle rustle of tall grasses in the wind.
+              Additional timber steps from the playing field to the top path.
+              Proposed Amphitheatre/ informal seating area.
             </p>
             <div className="p-6 bg-muted/50 rounded-2xl border border-border flex gap-4">
               <div className="h-10 w-10 bg-primary/10 text-primary rounded-full flex items-center justify-center shrink-0">
@@ -103,24 +104,26 @@ export default function CommunityPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div className="space-y-6">
-            <h3 className="text-3xl font-headline font-bold text-primary">Station 3: The Herb Garden</h3>
+            <h3 className="text-3xl font-headline font-bold text-primary">Phase 3: Natural Play</h3>
             <p className="text-lg text-muted-foreground leading-relaxed">
-              Designed to stimulate the sense of smell, our herb garden features lavender, rosemary, mint, and thyme. This station encourages visitors to gently touch the leaves to release their natural oils and fragrances.
+              Kids play area with mounds, log beams and boulders.
+              New access path to Jarmyns.
+              Re-landscaped mound.
             </p>
             <div className="p-6 bg-muted/50 rounded-2xl border border-border flex gap-4">
               <div className="h-10 w-10 bg-primary/10 text-primary rounded-full flex items-center justify-center shrink-0">
                 <Wind className="h-5 w-5" />
               </div>
-              <p className="text-sm italic">Inhale deeply and explore the varied scents of our kitchen and medicinal herbs.</p>
+              <p className="text-sm italic">Explore the re-landscaped mound and natural play structures.</p>
             </div>
           </div>
           <div className="relative aspect-video rounded-[2.5rem] overflow-hidden shadow-xl border-4 border-white">
             <Image 
-              src={sensoryHerbs?.imageUrl || "https://picsum.photos/seed/sensory-4/600/400"} 
-              alt="Aromatic Herb Garden" 
+              src={phase3Img?.imageUrl || "https://picsum.photos/seed/sensory-4/600/400"} 
+              alt="Phase 3 Natural Play" 
               fill 
               className="object-cover"
-              data-ai-hint="herb garden lavender"
+              data-ai-hint="play area"
             />
           </div>
         </div>
