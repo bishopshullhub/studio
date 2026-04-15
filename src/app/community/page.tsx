@@ -36,20 +36,18 @@ export default function CommunityPage() {
              />
           </div>
           <div className="relative z-10 p-8 md:p-16 space-y-8 max-w-4xl">
-            <div className="inline-flex items-center gap-2 px-4 py-1 bg-white/20 rounded-full text-sm font-bold uppercase tracking-wider backdrop-blur-sm">
-              <Footprints className="h-4 w-4" /> Award Winning Project
-            </div>
+            
             <h2 className="text-4xl md:text-6xl font-headline font-bold leading-tight">The Bishops Hull Sensory Trail</h2>
             <p className="text-xl md:text-2xl opacity-90 leading-relaxed font-medium">
-              A journey of discovery through the natural beauty of Bishops Hull. Designed for all ages and abilities to connect with nature through touch, sight, sound, and smell.
+              A new way to discover the natural beauty of Bishops Hull. Designed for all ages and abilities to connect with nature through touch, sight, sound, and smell.
             </p>
             <div className="flex flex-wrap gap-4">
-              <Button variant="secondary" size="lg" className="rounded-2xl px-8 h-14">
-                <Download className="mr-2 h-5 w-5" /> Download Trail Map
+              <Button asChild variant="secondary" size="lg" className="rounded-2xl px-8 h-14">
+                <a href="/Sensory-Walk-Master-Plan-Amendment-031122.pdf" download>
+                  <Download className="mr-2 h-5 w-5" /> Download Trail Map
+                </a>
               </Button>
-              <Button variant="outline" className="border-white text-white hover:bg-white/10 rounded-2xl px-8 h-14" size="lg">
-                <Info className="mr-2 h-5 w-5" /> Trail Educational Guide
-              </Button>
+            
             </div>
           </div>
         </div>
