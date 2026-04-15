@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -212,7 +211,6 @@ ${submittedData.additionalRequirements}
         throw new Error("Clipboard API unavailable");
       }
     } catch (err) {
-      // Catch permission errors or other clipboard failures
       toast({
         variant: "destructive",
         title: "Copy Unavailable",
@@ -235,7 +233,9 @@ ${submittedData.additionalRequirements}
           <CardContent className="p-8 space-y-6">
             <div className="space-y-4">
               <h2 className="text-xl font-bold text-primary border-b pb-2">Your Enquiry Details</h2>
-              <p className="text-sm text-muted-foreground">This information has been recorded and an email notification has been triggered for <strong>bishopshullhub@gmail.com</strong>.</p>
+              <p className="text-sm text-muted-foreground">
+                Thanks for enquiring, we will get back to you within 3 days. Please be patient, we are run by volunteers and will endeavour to contact you as soon as possible to arrange your <strong>{submittedData.typeOfEvent}</strong>.
+              </p>
               <pre className="bg-muted p-6 rounded-xl text-sm font-mono overflow-auto whitespace-pre-wrap border border-border select-all">
                 {getSummaryText()}
               </pre>
