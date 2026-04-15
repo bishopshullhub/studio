@@ -2,7 +2,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CalendarDays, Ticket, Heart, HelpCircle, ArrowRight } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { CalendarDays, Ticket, Heart, HelpCircle, ArrowRight, ChefHat, Users, Volume2, MonitorPlay, Wifi, MapPin } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 export default function HomePage() {
@@ -43,8 +44,64 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Quick Access Cards */}
+      {/* Facilities & Virtual Tour Section */}
       <section className="container mx-auto px-4 -mt-24 relative z-20">
+        <div className="bg-white rounded-[3rem] shadow-2xl overflow-hidden border border-border">
+          <div className="grid grid-cols-1 lg:grid-cols-2">
+            <div className="p-8 md:p-12 space-y-8">
+              <div className="space-y-4">
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-bold uppercase tracking-widest">
+                  <MapPin className="h-3 w-3" /> Modern Facilities
+                </div>
+                <h2 className="text-3xl font-headline font-bold text-primary">Everything you need for a perfect event</h2>
+                <p className="text-muted-foreground leading-relaxed">
+                  Our purpose-built hub is equipped with high-spec facilities designed to support a wide range of activities, from business meetings and private parties to community classes.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {[
+                  { icon: ChefHat, title: "Pro Kitchen", desc: "Fully equipped kitchen" },
+                  { icon: Users, title: "Capacity", desc: "Up to 100 people" },
+                  { icon: Heart, title: "Furnished", desc: "Tables and chairs for 80" },
+                  { icon: Volume2, title: "Audio", desc: "Surround sound system" },
+                  { icon: MonitorPlay, title: "Visuals", desc: "Digital Projector" },
+                  { icon: Wifi, title: "Connectivity", desc: "Free High-speed Wi-Fi" },
+                ].map((item, idx) => (
+                  <div key={idx} className="flex items-start gap-3 p-4 rounded-2xl bg-muted/30 border border-muted transition-colors hover:bg-muted/50">
+                    <div className="p-2 bg-white rounded-xl shadow-sm">
+                      <item.icon className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-sm text-primary">{item.title}</p>
+                      <p className="text-xs text-muted-foreground">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="relative bg-muted min-h-[400px]">
+              <div className="absolute inset-0">
+                <iframe 
+                  src="https://www.google.com/maps/embed?pb=!4v1776239036628!6m8!1m7!1sCAoSF0NJSE0wb2dLRUlDQWdJQ0tfLW1Da2dF!2m2!1d51.0160639!2d-3.1349833!3f260!4f10!5f0.7820865974627469" 
+                  className="w-full h-full border-0" 
+                  allowFullScreen 
+                  loading="lazy" 
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
+              </div>
+              <div className="absolute top-4 left-4 z-10">
+                <Badge className="bg-black/60 backdrop-blur-md text-white border-none px-4 py-2 uppercase tracking-tighter text-[10px] font-bold">
+                  Virtual Tour: Inside the Hub
+                </Badge>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Quick Access Cards */}
+      <section className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {[
             {
@@ -69,7 +126,7 @@ export default function HomePage() {
               color: "bg-white"
             }
           ].map((item, idx) => (
-            <Card key={idx} className={`${item.color} shadow-xl border-t-4 border-t-primary hover:translate-y-[-4px] transition-all duration-300`}>
+            <Card key={idx} className={`${item.color} shadow-xl border-t-4 border-t-primary hover:translate-y-[-4px] transition-all duration-300 rounded-[2rem]`}>
               <CardHeader>
                 <item.icon className="h-10 w-10 text-primary mb-2" />
                 <CardTitle className="text-2xl font-headline text-primary">{item.title}</CardTitle>
@@ -90,7 +147,7 @@ export default function HomePage() {
 
       {/* Highlight Module: The Youth Hub */}
       <section className="container mx-auto px-4 py-8">
-        <div className="bg-primary/5 rounded-3xl overflow-hidden border border-primary/10 grid grid-cols-1 lg:grid-cols-2">
+        <div className="bg-primary/5 rounded-[3rem] overflow-hidden border border-primary/10 grid grid-cols-1 lg:grid-cols-2">
           <div className="p-8 md:p-16 flex flex-col justify-center space-y-6">
             <div className="inline-block px-4 py-1 bg-accent/20 text-primary font-bold rounded-full text-sm uppercase tracking-wider">
               Featured Activity
@@ -108,7 +165,7 @@ export default function HomePage() {
                 Whether you want to chill, play games, or learn new skills, our youth team is here to support you.
               </p>
             </div>
-            <Button asChild size="lg" className="w-fit">
+            <Button asChild size="lg" className="w-fit rounded-xl">
               <a 
                 href="https://docs.google.com/forms/d/e/1FAIpQLSdbFE1XNPMMnVcUxeR7XnxVJa-qyC7vrPxmlgF3g4AXDmzkoA/viewform" 
                 target="_blank" 
@@ -138,10 +195,10 @@ export default function HomePage() {
             Our modern facility is perfect for birthday parties, meetings, classes, and wedding receptions.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild size="lg" variant="secondary" className="text-lg">
+            <Button asChild size="lg" variant="secondary" className="text-lg rounded-xl">
               <Link href="/hire">View Pricing & Specs</Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="border-white text-white hover:bg-white/10 text-lg">
+            <Button asChild size="lg" variant="outline" className="border-white text-white hover:bg-white/10 text-lg rounded-xl">
               <Link href="/hire#booking-form">Inquire Now</Link>
             </Button>
           </div>
