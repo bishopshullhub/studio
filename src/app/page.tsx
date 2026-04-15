@@ -11,9 +11,9 @@ export default function HomePage() {
   const youthImage = PlaceHolderImages.find(img => img.id === 'youth-club');
 
   return (
-    <div className="flex flex-col gap-16 pb-20">
-      {/* Hero Section */}
-      <section className="relative h-[600px] flex items-center justify-center overflow-hidden">
+    <div className="flex flex-col gap-8 md:gap-16 pb-20">
+      {/* Hero Section - Compressed on Mobile */}
+      <section className="relative h-[40vh] md:h-[600px] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0">
           <Image
             src={heroImage?.imageUrl || "https://picsum.photos/seed/bhh-hero/1200/600"}
@@ -26,61 +26,84 @@ export default function HomePage() {
           <div className="absolute inset-0 bg-black/40" />
         </div>
         
-        <div className="container relative z-10 text-center text-white px-4 space-y-6">
-          <h1 className="text-4xl md:text-6xl font-headline font-bold tracking-tight drop-shadow-md">
+        <div className="container relative z-10 text-center text-white px-4 space-y-4 md:space-y-6">
+          <h1 className="text-3xl md:text-6xl font-headline font-bold tracking-tight drop-shadow-md">
             Welcome to the <span className="text-accent">Bishops Hull Hub</span>
           </h1>
-          <p className="text-xl md:text-2xl max-w-2xl mx-auto font-medium drop-shadow-sm">
-            The heart of our village community. A space for everyone to connect, learn, and grow.
+          <p className="text-lg md:text-2xl max-w-2xl mx-auto font-medium drop-shadow-sm">
+            The heart of our village community.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-            <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-8">
+          <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
+            <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground text-base md:text-lg px-8 h-12 md:h-14">
               <Link href="/whats-on">View Schedule</Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/20 text-white text-lg px-8">
+            <Button asChild size="lg" variant="outline" className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/20 text-white text-base md:text-lg px-8 h-12 md:h-14">
               <Link href="/hire">Make a Booking</Link>
             </Button>
           </div>
         </div>
       </section>
 
+      {/* Primary Call to Action Card - Moved Above Virtual Tour */}
+      <section className="container mx-auto px-4 -mt-12 md:-mt-24 relative z-30">
+        <div className="max-w-4xl mx-auto">
+          <Card className="bg-white shadow-xl border-t-4 border-t-primary hover:translate-y-[-4px] transition-all duration-300 rounded-[2rem]">
+            <CardHeader className="p-5 md:p-8 pb-2">
+              <div className="flex items-center gap-3">
+                <HelpCircle className="h-8 w-8 text-primary" />
+                <CardTitle className="text-xl md:text-2xl font-headline text-primary">Common Questions</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="p-5 md:p-8 pt-0 space-y-4">
+              <p className="text-muted-foreground text-sm md:text-base">Find answers about venue hire, capacities, facilities, and more before you book.</p>
+              <Link 
+                href="/faq" 
+                className="inline-flex items-center text-primary font-semibold hover:gap-2 transition-all"
+              >
+                Read our FAQs <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
       {/* Facilities & Virtual Tour Section */}
-      <section className="container mx-auto px-4 -mt-24 relative z-20">
-        <div className="bg-white rounded-[3rem] shadow-2xl overflow-hidden border border-border">
+      <section className="container mx-auto px-4 relative z-20">
+        <div className="bg-white rounded-[2rem] md:rounded-[3rem] shadow-2xl overflow-hidden border border-border">
           <div className="grid grid-cols-1 lg:grid-cols-2">
-            <div className="p-8 md:p-12 space-y-8">
-              <div className="space-y-4">
-                <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-bold uppercase tracking-widest">
+            <div className="p-5 md:p-12 space-y-6 md:space-y-8">
+              <div className="space-y-3 md:space-y-4">
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary rounded-full text-[10px] md:text-xs font-bold uppercase tracking-widest">
                   <MapPin className="h-3 w-3" /> Modern Facilities
                 </div>
-                <h2 className="text-3xl font-headline font-bold text-primary">Everything you need for a perfect event</h2>
-                <p className="text-muted-foreground leading-relaxed">
-                  Our purpose-built hub is equipped with high-spec facilities designed to support a wide range of activities, from business meetings and private parties to community classes.
+                <h2 className="text-2xl md:text-3xl font-headline font-bold text-primary">Everything you need for a perfect event</h2>
+                <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
+                  Our purpose-built hub is equipped with high-spec facilities designed to support a wide range of activities.
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3 md:gap-4">
                 {[
-                  { icon: ChefHat, title: "Pro Kitchen", desc: "Fully equipped kitchen" },
-                  { icon: Users, title: "Capacity", desc: "Up to 100 people" },
-                  { icon: Heart, title: "Furnished", desc: "Tables and chairs for 80" },
-                  { icon: Volume2, title: "Audio", desc: "Surround sound system" },
-                  { icon: MonitorPlay, title: "Visuals", desc: "Digital Projector" },
-                  { icon: Wifi, title: "Connectivity", desc: "Free High-speed Wi-Fi" },
+                  { icon: ChefHat, title: "Pro Kitchen", desc: "Equipped" },
+                  { icon: Users, title: "Capacity", desc: "Up to 100" },
+                  { icon: Heart, title: "Furnished", desc: "Tables/Chairs" },
+                  { icon: Volume2, title: "Audio", desc: "Surround" },
+                  { icon: MonitorPlay, title: "Visuals", desc: "Projector" },
+                  { icon: Wifi, title: "Connectivity", desc: "Free Wi-Fi" },
                 ].map((item, idx) => (
-                  <div key={idx} className="flex items-start gap-3 p-4 rounded-2xl bg-muted/30 border border-muted transition-colors hover:bg-muted/50">
-                    <div className="p-2 bg-white rounded-xl shadow-sm">
-                      <item.icon className="h-5 w-5 text-primary" />
+                  <div key={idx} className="flex flex-col md:flex-row items-center md:items-start gap-2 md:gap-3 p-3 md:p-4 rounded-xl md:rounded-2xl bg-muted/30 border border-muted text-center md:text-left">
+                    <div className="p-1.5 md:p-2 bg-white rounded-lg shadow-sm">
+                      <item.icon className="h-4 w-4 md:h-5 md:w-5 text-primary" />
                     </div>
                     <div>
-                      <p className="font-bold text-sm text-primary">{item.title}</p>
-                      <p className="text-xs text-muted-foreground">{item.desc}</p>
+                      <p className="font-bold text-[10px] md:text-sm text-primary">{item.title}</p>
+                      <p className="text-[9px] md:text-xs text-muted-foreground hidden sm:block">{item.desc}</p>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
-            <div className="relative bg-muted min-h-[400px]">
+            <div className="relative bg-muted min-h-[300px] md:min-h-[400px]">
               <div className="absolute inset-0">
                 <iframe 
                   src="https://www.google.com/maps/embed?pb=!4v1776239036628!6m8!1m7!1sCAoSF0NJSE0wb2dLRUlDQWdJQ0tfLW1Da2dF!2m2!1d51.0160639!2d-3.1349833!3f260!4f10!5f0.7820865974627469" 
@@ -92,7 +115,7 @@ export default function HomePage() {
               </div>
               <div className="absolute top-4 left-4 z-10">
                 <Badge className="bg-black/60 backdrop-blur-md text-white border-none px-4 py-2 uppercase tracking-tighter text-[10px] font-bold">
-                  Virtual Tour: Inside the Hub
+                  Virtual Tour
                 </Badge>
               </div>
             </div>
@@ -100,39 +123,32 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Quick Access Cards */}
+      {/* Quick Access Cards - 50/50 Split on Tablets/Mobile */}
       <section className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-8">
           {[
             {
               title: "Event Tickets",
-              desc: "Book your place for our upcoming one-off events and fundraisers.",
+              desc: "Book upcoming village events and fundraisers.",
               icon: Ticket,
               href: "/whats-on#tickets",
               color: "bg-white"
             },
             {
               title: "Join the 100 Club",
-              desc: "Support your hub and get a chance to win monthly prizes.",
+              desc: "Support your hub and win monthly prizes.",
               icon: Heart,
               href: "/community#100-club",
-              color: "bg-white"
-            },
-            {
-              title: "Common Questions",
-              desc: "Find answers about venue hire, capacities, and facilities.",
-              icon: HelpCircle,
-              href: "/faq",
               color: "bg-white"
             }
           ].map((item, idx) => (
             <Card key={idx} className={`${item.color} shadow-xl border-t-4 border-t-primary hover:translate-y-[-4px] transition-all duration-300 rounded-[2rem]`}>
-              <CardHeader>
-                <item.icon className="h-10 w-10 text-primary mb-2" />
-                <CardTitle className="text-2xl font-headline text-primary">{item.title}</CardTitle>
+              <CardHeader className="p-5 md:p-8">
+                <item.icon className="h-8 w-8 md:h-10 md:w-10 text-primary mb-2" />
+                <CardTitle className="text-xl md:text-2xl font-headline text-primary">{item.title}</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-muted-foreground">{item.desc}</p>
+              <CardContent className="p-5 md:p-8 pt-0 space-y-4">
+                <p className="text-sm md:text-base text-muted-foreground">{item.desc}</p>
                 <Link 
                   href={item.href} 
                   className="inline-flex items-center text-primary font-semibold hover:gap-2 transition-all"
@@ -145,24 +161,21 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Highlight Module: The Youth Hub */}
-      <section className="container mx-auto px-4 py-8">
-        <div className="bg-primary/5 rounded-[3rem] overflow-hidden border border-primary/10 grid grid-cols-1 lg:grid-cols-2">
-          <div className="p-8 md:p-16 flex flex-col justify-center space-y-6">
-            <div className="inline-block px-4 py-1 bg-accent/20 text-primary font-bold rounded-full text-sm uppercase tracking-wider">
+      {/* Youth Hub Module */}
+      <section className="container mx-auto px-4 py-4 md:py-8">
+        <div className="bg-primary/5 rounded-[2rem] md:rounded-[3rem] overflow-hidden border border-primary/10 grid grid-cols-1 lg:grid-cols-2">
+          <div className="p-6 md:p-16 flex flex-col justify-center space-y-4 md:space-y-6">
+            <div className="inline-block w-fit px-4 py-1 bg-accent/20 text-primary font-bold rounded-full text-xs md:text-sm uppercase tracking-wider">
               Featured Activity
             </div>
-            <h2 className="text-3xl md:text-4xl font-headline font-bold text-primary">The Youth Hub</h2>
-            <div className="space-y-4 text-lg text-muted-foreground leading-relaxed">
+            <h2 className="text-2xl md:text-4xl font-headline font-bold text-primary">The Youth Hub</h2>
+            <div className="space-y-4 text-sm md:text-lg text-muted-foreground leading-relaxed">
               <p>
-                Open to secondary-school age children, the Youth Hub is a safe and vibrant space for our village's teenagers.
+                A safe and vibrant space for our village's teenagers.
               </p>
-              <p className="font-semibold text-foreground">
-                <CalendarDays className="inline mr-2 h-5 w-5 text-primary" />
-                Every 3rd Saturday of the Month
-              </p>
-              <p>
-                Whether you want to chill, play games, or learn new skills, our youth team is here to support you.
+              <p className="font-semibold text-foreground flex items-center">
+                <CalendarDays className="inline mr-2 h-5 w-5 text-primary shrink-0" />
+                Every 3rd Saturday
               </p>
             </div>
             <Button asChild size="lg" className="w-fit rounded-xl">
@@ -171,11 +184,11 @@ export default function HomePage() {
                 target="_blank" 
                 rel="noopener noreferrer"
               >
-                Register Your Interest
+                Register Interest
               </a>
             </Button>
           </div>
-          <div className="relative h-[400px] lg:h-auto">
+          <div className="relative h-[250px] md:h-auto">
             <Image
               src={youthImage?.imageUrl || "https://picsum.photos/seed/bhh-youth/600/400"}
               alt="Youth Activities"
@@ -187,18 +200,18 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* News / Call to Action Section */}
-      <section className="bg-primary text-primary-foreground py-20">
-        <div className="container mx-auto px-4 text-center space-y-8">
-          <h2 className="text-3xl md:text-5xl font-headline font-bold">Ready to Host Your Event?</h2>
-          <p className="text-xl max-w-2xl mx-auto opacity-90">
-            Our modern facility is perfect for birthday parties, meetings, classes, and wedding receptions.
+      {/* Final CTA */}
+      <section className="bg-primary text-primary-foreground py-12 md:py-20">
+        <div className="container mx-auto px-4 text-center space-y-6 md:space-y-8">
+          <h2 className="text-2xl md:text-5xl font-headline font-bold">Ready to Host Your Event?</h2>
+          <p className="text-base md:text-xl max-w-2xl mx-auto opacity-90">
+            Perfect for birthday parties, meetings, classes, and receptions.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild size="lg" variant="secondary" className="text-lg rounded-xl">
+            <Button asChild size="lg" variant="secondary" className="text-base md:text-lg rounded-xl h-12 md:h-14">
               <Link href="/hire">View Pricing & Specs</Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="border-white text-white hover:bg-white/10 text-lg rounded-xl">
+            <Button asChild size="lg" variant="outline" className="border-white text-white hover:bg-white/10 text-base md:text-lg rounded-xl h-12 md:h-14">
               <Link href="/hire#booking-form">Inquire Now</Link>
             </Button>
           </div>

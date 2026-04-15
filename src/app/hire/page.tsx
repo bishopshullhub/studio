@@ -221,34 +221,34 @@ ${submittedData.additionalRequirements}
 
   if (isSubmitted) {
     return (
-      <div className="container mx-auto px-4 py-20 max-w-3xl">
+      <div className="container mx-auto px-4 py-12 md:py-20 max-w-3xl">
         <Card className="border-none shadow-2xl overflow-hidden">
-          <div className="bg-primary p-8 text-center text-primary-foreground">
-            <div className="mx-auto w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mb-4">
-              <Check className="h-8 w-8" />
+          <div className="bg-primary p-6 md:p-8 text-center text-primary-foreground">
+            <div className="mx-auto w-12 h-12 md:w-16 md:h-16 bg-white/20 rounded-full flex items-center justify-center mb-4">
+              <Check className="h-6 w-6 md:h-8 md:w-8" />
             </div>
-            <h1 className="text-3xl font-headline font-bold">Enquiry Received!</h1>
-            <p className="opacity-90 mt-2">Thank you for contacting the Bishops Hull Hub.</p>
+            <h1 className="text-2xl md:text-3xl font-headline font-bold">Enquiry Received!</h1>
+            <p className="opacity-90 mt-2 text-sm md:text-base">Thank you for contacting the Bishops Hull Hub.</p>
           </div>
-          <CardContent className="p-8 space-y-6">
+          <CardContent className="p-6 md:p-8 space-y-6">
             <div className="space-y-4">
-              <h2 className="text-xl font-bold text-primary border-b pb-2">Your Enquiry Details</h2>
-              <p className="text-sm text-muted-foreground">
+              <h2 className="text-lg md:text-xl font-bold text-primary border-b pb-2">Your Enquiry Details</h2>
+              <p className="text-xs md:text-sm text-muted-foreground">
                 Thanks for enquiring, we will get back to you within 3 days. Please be patient, we are run by volunteers and will endeavour to contact you as soon as possible to arrange your <strong>{submittedData.typeOfEvent}</strong>.
               </p>
-              <pre className="bg-muted p-6 rounded-xl text-sm font-mono overflow-auto whitespace-pre-wrap border border-border select-all">
+              <pre className="bg-muted p-4 md:p-6 rounded-xl text-[10px] md:text-sm font-mono overflow-auto whitespace-pre-wrap border border-border select-all">
                 {getSummaryText()}
               </pre>
             </div>
             
             <div className="bg-accent/10 p-4 rounded-xl flex gap-3 items-start">
-              <Info className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-              <p className="text-sm text-muted-foreground italic">
-                Our volunteer bookings secretary will review your request and contact you via your preferred method shortly.
+              <Info className="h-4 w-4 md:h-5 md:w-5 text-primary shrink-0 mt-0.5" />
+              <p className="text-xs md:text-sm text-muted-foreground italic">
+                Our volunteer bookings secretary will review your request and contact you shortly.
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 pt-4">
+            <div className="flex flex-col sm:flex-row gap-3 md:gap-4 pt-4">
               <Button onClick={handleCopy} className="flex-1 gap-2" variant="outline">
                 <Copy className="h-4 w-4" /> Copy Summary
               </Button>
@@ -264,67 +264,68 @@ ${submittedData.additionalRequirements}
 
   return (
     <div className="pb-20">
-      <section className="bg-primary text-primary-foreground py-20">
+      <section className="bg-primary text-primary-foreground py-12 md:py-20">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-5xl font-headline font-bold mb-4">Hire the Hub</h1>
-          <p className="text-xl opacity-90 max-w-2xl mx-auto">
-            Modern facilities for private functions, corporate events, and community groups.
+          <h1 className="text-3xl md:text-5xl font-headline font-bold mb-4">Hire the Hub</h1>
+          <p className="text-lg md:text-xl opacity-90 max-w-2xl mx-auto">
+            Modern facilities for private functions and community groups.
           </p>
         </div>
       </section>
 
-      <div className="container mx-auto px-4 -mt-10 space-y-12">
-        <div className="max-w-4xl mx-auto space-y-12">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="container mx-auto px-4 -mt-10 space-y-8 md:space-y-12">
+        <div className="max-w-4xl mx-auto space-y-8 md:space-y-12">
+          {/* Pricing Grid - Optimized for Mobile */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
             {[
-              { label: "Hourly Rate", value: "£18.00", sub: "per hour" },
-              { label: "Full Day Cap", value: "£140.00", sub: "over 8 hours" },
-              { label: "Day Deposit", value: "£50.00", sub: "refundable" },
-              { label: "Evening Deposit", value: "£100.00", sub: "refundable" },
+              { label: "Hourly", value: "£18.00" },
+              { label: "Day Cap", value: "£140.00" },
+              { label: "Day Dep.", value: "£50.00" },
+              { label: "Eve Dep.", value: "£100.00" },
             ].map((item, idx) => (
-              <Card key={idx} className="border-none shadow-lg bg-white overflow-hidden">
-                <CardContent className="p-6 flex flex-col items-center justify-center text-center space-y-1">
-                  <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{item.label}</span>
-                  <span className="text-3xl font-bold text-primary">{item.value}</span>
-                  <span className="text-xs italic text-muted-foreground">{item.sub}</span>
+              <Card key={idx} className="border-none shadow-md bg-white overflow-hidden">
+                <CardContent className="p-3 md:p-6 flex flex-col items-center justify-center text-center">
+                  <span className="text-[9px] md:text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">{item.label}</span>
+                  <span className="text-xl md:text-3xl font-bold text-primary">{item.value}</span>
                 </CardContent>
               </Card>
             ))}
           </div>
 
           <section id="booking-form" className="scroll-mt-24">
-            <div className="bg-white rounded-3xl p-8 shadow-xl border border-border">
-              <div className="mb-10 space-y-4">
-                <div className="flex justify-between items-end mb-2">
+            {/* Form Container - Reduced Mobile Padding */}
+            <div className="bg-white rounded-2xl md:rounded-3xl p-4 md:p-8 shadow-xl border border-border">
+              <div className="mb-6 md:mb-10 space-y-4">
+                <div className="flex justify-between items-end mb-1">
                   <div>
-                    <span className="text-xs font-bold uppercase tracking-widest text-primary">Step {step} of {totalSteps}</span>
-                    <h2 className="text-2xl font-headline font-bold text-primary">
-                      {step === 1 && "Pricing & Availability"}
-                      {step === 2 && "Venue Policies"}
-                      {step === 3 && "Contact Information"}
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Step {step} of {totalSteps}</span>
+                    <h2 className="text-lg md:text-2xl font-headline font-bold text-primary">
+                      {step === 1 && "Availability"}
+                      {step === 2 && "Policies"}
+                      {step === 3 && "Contact"}
                       {step === 4 && "Event Details"}
-                      {step === 5 && "Additional Requirements"}
+                      {step === 5 && "Requirements"}
                     </h2>
                   </div>
-                  <span className="text-sm font-medium text-muted-foreground">{Math.round(progress)}% Complete</span>
+                  <span className="text-xs font-medium text-muted-foreground">{Math.round(progress)}%</span>
                 </div>
-                <Progress value={progress} className="h-2" />
+                <Progress value={progress} className="h-1.5 md:h-2" />
               </div>
 
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 md:space-y-8">
                   {step === 1 && (
-                    <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
-                      <div className="space-y-4">
+                    <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+                      <div className="space-y-3">
                         <div className="flex items-center gap-2 text-primary">
                           <Calendar className="h-5 w-5" />
-                          <h3 className="text-xl font-bold">Live Availability Schedule</h3>
+                          <h3 className="font-bold">Live Availability</h3>
                         </div>
-                        <p className="text-muted-foreground">Please check the schedule below for your preferred date and time before continuing.</p>
-                        <div className="rounded-2xl border border-border overflow-hidden bg-muted/20">
+                        <p className="text-sm text-muted-foreground">Check the schedule below for your preferred date.</p>
+                        <div className="rounded-xl border border-border overflow-hidden bg-muted/20 w-full">
                           <iframe 
                             src="https://v2.hallmaster.co.uk/Scheduler/View/10228?startRoom=0&amp;hideTitle=true&amp;hideTopBar=true&amp;hideButtons=true&amp;disableLinks=true" 
-                            style={{ width: '100%', height: '800px', border: 'none' }}
+                            className="w-full h-[600px] md:h-[800px] border-none"
                           />
                         </div>
                       </div>
@@ -332,27 +333,25 @@ ${submittedData.additionalRequirements}
                   )}
 
                   {step === 2 && (
-                    <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
-                      <div className="space-y-6">
-                        <div className="p-6 rounded-2xl bg-blue-50/50 border border-blue-100 space-y-3">
-                          <div className="flex items-center gap-3 text-blue-700">
-                            <div className="p-2 bg-blue-100 rounded-lg"><Info className="h-5 w-5" /></div>
-                            <h3 className="font-bold text-lg">Bouncy Castles</h3>
+                    <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+                      <div className="space-y-4">
+                        <div className="p-4 md:p-6 rounded-xl md:rounded-2xl bg-blue-50/50 border border-blue-100 space-y-2">
+                          <div className="flex items-center gap-2 text-blue-700">
+                            <Info className="h-4 w-4" />
+                            <h3 className="font-bold">Bouncy Castles</h3>
                           </div>
-                          <p className="text-muted-foreground leading-relaxed">
-                            We allow bouncy castles inside and outside. Please see our dedicated 
-                            <Link href="/bouncy-castles" className="text-primary font-semibold hover:underline px-1">guidance page</Link> 
-                            for safety and size requirements.
+                          <p className="text-xs md:text-sm text-muted-foreground">
+                            See our <Link href="/bouncy-castles" className="text-primary font-semibold hover:underline">guidance page</Link> for requirements.
                           </p>
                         </div>
 
-                        <div className="p-6 rounded-2xl bg-amber-50/50 border border-amber-100 space-y-3">
-                          <div className="flex items-center gap-3 text-amber-700">
-                            <div className="p-2 bg-amber-100 rounded-lg"><AlertTriangle className="h-5 w-5" /></div>
-                            <h3 className="font-bold text-lg">Fireworks</h3>
+                        <div className="p-4 md:p-6 rounded-xl md:rounded-2xl bg-amber-50/50 border border-amber-100 space-y-2">
+                          <div className="flex items-center gap-2 text-amber-700">
+                            <AlertTriangle className="h-4 w-4" />
+                            <h3 className="font-bold">Fireworks</h3>
                           </div>
-                          <p className="text-muted-foreground leading-relaxed">
-                            Due to proximity to schools and homes, we cannot permit fireworks.
+                          <p className="text-xs md:text-sm text-muted-foreground">
+                            Not permitted due to proximity to homes.
                           </p>
                         </div>
                       </div>
@@ -361,13 +360,13 @@ ${submittedData.additionalRequirements}
                         control={form.control}
                         name="acknowledgedPolicies"
                         render={({ field }) => (
-                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-6 rounded-2xl bg-primary/5 border border-primary/10">
+                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 md:p-6 rounded-xl md:rounded-2xl bg-primary/5 border border-primary/10">
                             <FormControl>
                               <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                             </FormControl>
                             <div className="space-y-1 leading-none">
-                              <FormLabel className="text-base font-bold text-primary cursor-pointer">
-                                I acknowledge these venue policies and restrictions.
+                              <FormLabel className="text-sm md:text-base font-bold text-primary cursor-pointer">
+                                I acknowledge these policies.
                               </FormLabel>
                               <FormMessage />
                             </div>
@@ -378,13 +377,13 @@ ${submittedData.additionalRequirements}
                   )}
 
                   {step === 3 && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-right-4 duration-500">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 animate-in fade-in slide-in-from-right-4 duration-500">
                       <FormField
                         control={form.control}
                         name="name"
                         render={({ field }) => (
                           <FormItem className="md:col-span-2">
-                            <FormLabel>Your Full Name</FormLabel>
+                            <FormLabel>Full Name</FormLabel>
                             <FormControl><Input placeholder="John Doe" {...field} /></FormControl>
                             <FormMessage />
                           </FormItem>
@@ -406,9 +405,9 @@ ${submittedData.additionalRequirements}
                         name="preferredContact"
                         render={({ field }) => (
                           <FormItem className="md:col-span-2">
-                            <FormLabel>Preferred Method of Contact</FormLabel>
+                            <FormLabel>Preferred Contact Method</FormLabel>
                             <FormControl>
-                              <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex gap-4 pt-2">
+                              <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex gap-4 pt-1">
                                 <FormItem className="flex items-center space-x-2 space-y-0">
                                   <FormControl><RadioGroupItem value="Email" /></FormControl>
                                   <FormLabel className="font-normal flex items-center gap-1 cursor-pointer"><Mail className="h-4 w-4" /> Email</FormLabel>
@@ -429,7 +428,7 @@ ${submittedData.additionalRequirements}
                         render={({ field }) => (
                           <FormItem className="md:col-span-2">
                             <FormLabel>Postal Address</FormLabel>
-                            <FormControl><Textarea placeholder="Enter your full street address" {...field} /></FormControl>
+                            <FormControl><Textarea placeholder="Full street address" className="min-h-[80px]" {...field} /></FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -450,7 +449,7 @@ ${submittedData.additionalRequirements}
                         name="phone"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Telephone Number</FormLabel>
+                            <FormLabel>Phone Number</FormLabel>
                             <FormControl><Input placeholder="07123 456789" {...field} /></FormControl>
                             <FormMessage />
                           </FormItem>
@@ -460,14 +459,13 @@ ${submittedData.additionalRequirements}
                   )}
 
                   {step === 4 && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-right-4 duration-500">
-                      <div className="md:col-span-2 p-6 rounded-2xl bg-primary/5 border border-primary/10 space-y-2">
-                        <div className="flex items-center gap-2 text-primary font-bold">
-                          <Info className="h-5 w-5" />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 animate-in fade-in slide-in-from-right-4 duration-500">
+                      <div className="md:col-span-2 p-4 md:p-6 rounded-xl md:rounded-2xl bg-primary/5 border border-primary/10 space-y-2">
+                        <div className="flex items-center gap-2 text-primary font-bold text-sm">
+                          <Info className="h-4 w-4" />
                           Deposit Information
                         </div>
-                        <p className="text-sm">Evening events (after 8pm) require a <strong>£100</strong> deposit. All other bookings require <strong>£50</strong>.</p>
-                        <p className="text-xs text-muted-foreground italic">Deposits are returned within 2 days of hire if the facility is left in good condition.</p>
+                        <p className="text-xs">Eve events (£100), others (£50).</p>
                       </div>
 
                       <FormField
@@ -475,7 +473,7 @@ ${submittedData.additionalRequirements}
                         name="date"
                         render={({ field }) => (
                           <FormItem className="md:col-span-2">
-                            <FormLabel>Date Required (Min 14 days in advance)</FormLabel>
+                            <FormLabel>Date Required</FormLabel>
                             <FormControl><Input type="date" min={minDateStr} {...field} /></FormControl>
                             <FormMessage />
                           </FormItem>
@@ -486,7 +484,7 @@ ${submittedData.additionalRequirements}
                         name="startTime"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Start Time (15-min increments)</FormLabel>
+                            <FormLabel>Start Time</FormLabel>
                             <FormControl><Input type="time" step="900" {...field} /></FormControl>
                             <FormMessage />
                           </FormItem>
@@ -497,7 +495,7 @@ ${submittedData.additionalRequirements}
                         name="endTime"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>End Time (15-min increments)</FormLabel>
+                            <FormLabel>End Time</FormLabel>
                             <FormControl><Input type="time" step="900" {...field} /></FormControl>
                             <FormMessage />
                           </FormItem>
@@ -505,9 +503,9 @@ ${submittedData.additionalRequirements}
                       />
                       
                       {duration && (
-                        <div className="md:col-span-2 p-4 rounded-xl bg-accent/10 border border-accent/20 flex items-center gap-3">
-                          <Clock className="h-5 w-5 text-primary" />
-                          <span className="font-bold text-primary">Total Booking Duration: {duration}</span>
+                        <div className="md:col-span-2 p-3 rounded-xl bg-accent/10 border border-accent/20 flex items-center gap-2">
+                          <Clock className="h-4 w-4 text-primary" />
+                          <span className="font-bold text-primary text-xs md:text-sm">Duration: {duration}</span>
                         </div>
                       )}
 
@@ -516,7 +514,7 @@ ${submittedData.additionalRequirements}
                         name="attendance"
                         render={({ field }) => (
                           <FormItem className="md:col-span-2">
-                            <FormLabel>Estimated Attendance</FormLabel>
+                            <FormLabel>Est. Attendance</FormLabel>
                             <FormControl><Input type="number" placeholder="e.g. 50" {...field} /></FormControl>
                             <FormMessage />
                           </FormItem>
@@ -533,7 +531,7 @@ ${submittedData.additionalRequirements}
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Type of Event</FormLabel>
-                            <FormControl><Input placeholder="e.g. Birthday Party, Yoga Class" {...field} /></FormControl>
+                            <FormControl><Input placeholder="e.g. Birthday Party" {...field} /></FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -544,7 +542,7 @@ ${submittedData.additionalRequirements}
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Additional Requirements</FormLabel>
-                            <FormControl><Textarea placeholder="Kitchen access, bar service, etc." className="min-h-[120px]" {...field} /></FormControl>
+                            <FormControl><Textarea placeholder="Kitchen access, bar service, etc." className="min-h-[100px]" {...field} /></FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -553,11 +551,11 @@ ${submittedData.additionalRequirements}
                         control={form.control}
                         name="agreedToTerms"
                         render={({ field }) => (
-                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 rounded-xl bg-muted/30">
+                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-3 rounded-xl bg-muted/30">
                             <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
                             <div className="space-y-1 leading-none">
-                              <FormLabel className="cursor-pointer">
-                                I agree to the <Link href="/hire-agreement" className="text-primary hover:underline">Standard Conditions of Hire</Link>.
+                              <FormLabel className="cursor-pointer text-xs md:text-sm">
+                                I agree to the <Link href="/hire-agreement" className="text-primary hover:underline">Standard Conditions</Link>.
                               </FormLabel>
                               <FormMessage />
                             </div>
@@ -567,19 +565,19 @@ ${submittedData.additionalRequirements}
                     </div>
                   )}
 
-                  <div className="flex justify-between pt-6 border-t border-muted">
+                  <div className="flex justify-between pt-4 md:pt-6 border-t border-muted">
                     <Button type="button" variant="ghost" onClick={prevStep} disabled={step === 1} className={cn(step === 1 && "invisible")}>
-                      <ArrowLeft className="mr-2 h-4 w-4" /> Previous
+                      <ArrowLeft className="mr-1 h-4 w-4" /> Back
                     </Button>
 
                     {step < totalSteps ? (
-                      <Button type="button" onClick={nextStep} className="bg-primary hover:bg-primary/90 px-8">
-                        {step === 1 ? "Start Enquiry" : "Next Step"} <ArrowRight className="ml-2 h-4 w-4" />
+                      <Button type="button" onClick={nextStep} className="bg-primary hover:bg-primary/90 px-6 md:px-8">
+                        {step === 1 ? "Start" : "Next"} <ArrowRight className="ml-1 h-4 w-4" />
                       </Button>
                     ) : (
-                      <Button type="submit" className="bg-primary hover:bg-primary/90 px-12" disabled={isSubmitting}>
+                      <Button type="submit" className="bg-primary hover:bg-primary/90 px-8" disabled={isSubmitting}>
                         {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                        Submit Booking Enquiry
+                        Submit Enquiry
                       </Button>
                     )}
                   </div>
@@ -588,36 +586,37 @@ ${submittedData.additionalRequirements}
             </div>
           </section>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Overviews - Reduced Mobile Padding */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
             <Card className="border-none shadow-lg bg-white">
-              <CardHeader><CardTitle className="text-xl text-primary font-headline">Facility Overview</CardTitle></CardHeader>
-              <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <CardHeader className="p-5 md:p-6"><CardTitle className="text-lg md:text-xl text-primary font-headline">Facility Overview</CardTitle></CardHeader>
+              <CardContent className="p-5 md:p-6 pt-0 grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {[
-                  { icon: Users, label: "Capacity", value: "Up to 110 people" },
-                  { icon: Wifi, label: "Connectivity", value: "Free High-speed Wi-Fi" },
-                  { icon: Coffee, label: "Kitchen", value: "Catering kitchen" },
-                  { icon: Car, label: "Parking", value: "18 On-site spaces" },
+                  { icon: Users, label: "Capacity", value: "Up to 110" },
+                  { icon: Wifi, label: "Wifi", value: "Free" },
+                  { icon: Coffee, label: "Kitchen", value: "Catering spec" },
+                  { icon: Car, label: "Parking", value: "18 spaces" },
                 ].map((item, idx) => (
-                  <div key={idx} className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-                    <item.icon className="h-5 w-5 text-primary shrink-0" />
-                    <div><p className="text-[10px] text-muted-foreground uppercase font-bold">{item.label}</p><p className="text-sm font-semibold">{item.value}</p></div>
+                  <div key={idx} className="flex items-center gap-3 p-2 md:p-3 rounded-lg bg-muted/30">
+                    <item.icon className="h-4 w-4 text-primary shrink-0" />
+                    <div><p className="text-[8px] md:text-[10px] text-muted-foreground uppercase font-bold">{item.label}</p><p className="text-xs md:text-sm font-semibold">{item.value}</p></div>
                   </div>
                 ))}
               </CardContent>
             </Card>
 
             <Card className="border-none shadow-lg bg-white">
-              <CardHeader><CardTitle className="text-xl text-primary font-headline">Booking Checklist</CardTitle></CardHeader>
-              <CardContent className="space-y-3">
+              <CardHeader className="p-5 md:p-6"><CardTitle className="text-lg md:text-xl text-primary font-headline">Booking Checklist</CardTitle></CardHeader>
+              <CardContent className="p-5 md:p-6 pt-0 space-y-2 md:space-y-3">
                 {[
-                  "Check live availability schedule",
-                  "Read Venue Policies & Bouncy Castle rules",
-                  "Ensure attendance does not exceed 110",
-                  "Agree to Standard Conditions of Hire",
+                  "Check live schedule",
+                  "Read Bouncy Castle rules",
+                  "Capacity max 110",
+                  "Agree to Hire Conditions",
                 ].map((item, idx) => (
-                  <div key={idx} className="flex items-start gap-3">
-                    <CheckCircle2 className="h-5 w-5 text-accent shrink-0" />
-                    <span className="text-sm">{item}</span>
+                  <div key={idx} className="flex items-start gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-accent shrink-0 mt-0.5" />
+                    <span className="text-xs md:text-sm">{item}</span>
                   </div>
                 ))}
               </CardContent>
