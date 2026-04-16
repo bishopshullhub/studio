@@ -99,7 +99,7 @@ export default function HeroSection({ heroImageUrl }: HeroSectionProps) {
             <Link href="/hire">Make a Booking</Link>
           </Button>
         </motion.div>
-      </motion.div>
+      </div>
 
       {/* Scroll indicator */}
       <motion.div
