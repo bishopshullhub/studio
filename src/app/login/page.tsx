@@ -183,7 +183,7 @@ export default function LoginPage() {
         </Tabs>
         
         <CardFooter className="bg-muted/50 p-4 border-t">
-          <p className="text-[10px] text-center w-full text-muted-foreground uppercase tracking-widest font-bold">
+          <p className="text-xs text-center w-full text-muted-foreground uppercase tracking-widest font-bold">
             Authorized Personnel Only
           </p>
         </CardFooter>

@@ -108,7 +108,7 @@ export default function WhatsOnPage() {
                   !isSelected && isCurrentDay && "border-accent/30 bg-accent/5"
                 )}
               >
-                <span className={cn("text-[10px] font-bold uppercase tracking-widest mb-1", isSelected ? "text-primary-foreground/70" : "text-muted-foreground")}>
+                <span className={cn("text-xs font-bold uppercase tracking-widest mb-1", isSelected ? "text-primary-foreground/70" : "text-muted-foreground")}>
                   {format(day, 'EEE')}
                 </span>
                 <span className="text-xl font-bold font-headline">
@@ -150,7 +150,7 @@ export default function WhatsOnPage() {
               <Card key={event.id} className="border-none shadow-lg bg-white overflow-hidden group hover:shadow-xl transition-all duration-300 rounded-[2rem] flex flex-col">
                 <div className="p-8 space-y-4 flex-1">
                   <div className="flex justify-between items-start">
-                    <Badge className="bg-primary/10 text-primary hover:bg-primary/20 border-none px-3 py-1 font-bold text-[10px] uppercase">
+                    <Badge className="bg-primary/10 text-primary hover:bg-primary/20 border-none px-3 py-1 font-bold text-xs uppercase">
                       Hall Booking
                     </Badge>
                     <div className="flex items-center gap-1.5 text-primary font-bold text-sm bg-primary/5 px-3 py-1 rounded-full">
@@ -171,7 +171,7 @@ export default function WhatsOnPage() {
                   </div>
 
                   {event.location && (
-                    <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest pt-4">
+                    <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-widest pt-4">
                       <MapPin className="h-3 w-3" /> {event.location}
                     </div>
                   )}

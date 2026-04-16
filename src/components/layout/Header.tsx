@@ -7,13 +7,14 @@ import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { useFirebase, initiateAnonymousSignIn } from '@/firebase';
 import { signOut } from 'firebase/auth';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const { user, auth } = useFirebase();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     setMounted(true);
@@ -52,15 +53,23 @@ export default function Header() {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-6">
-          {navLinks.map((link) => (
-            <Link
-              key={link.name}
-              href={link.href}
-              className="text-sm font-medium transition-colors hover:text-primary"
-            >
-              {link.name}
-            </Link>
-          ))}
+          {navLinks.map((link) => {
+            const isActive = link.href === '/' ? pathname === '/' : pathname.startsWith(link.href);
+            return (
+              <Link
+                key={link.name}
+                href={link.href}
+                className={cn(
+                  "text-sm font-medium transition-colors hover:text-primary relative",
+                  isActive
+                    ? "text-primary after:absolute after:bottom-[-4px] after:left-0 after:right-0 after:h-0.5 after:bg-primary after:rounded-full"
+                    : "text-foreground/70"
+                )}
+              >
+                {link.name}
+              </Link>
+            );
+          })}
           
           <div className="h-6 w-px bg-border mx-2" />
 
@@ -94,6 +103,8 @@ export default function Header() {
         <button
           className="md:hidden p-2 text-foreground"
           onClick={() => setIsOpen(!isOpen)}
+          aria-label={isOpen ? "Close navigation menu" : "Open navigation menu"}
+          aria-expanded={isOpen}
         >
           {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
@@ -106,16 +117,22 @@ export default function Header() {
           isOpen ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4 pointer-events-none"
         )}
       >
-        {navLinks.map((link) => (
-          <Link
-            key={link.name}
-            href={link.href}
-            onClick={() => setIsOpen(false)}
-            className="block text-lg font-medium py-3 border-b border-muted last:border-0"
-          >
-            {link.name}
-          </Link>
-        ))}
+        {navLinks.map((link) => {
+          const isActive = link.href === '/' ? pathname === '/' : pathname.startsWith(link.href);
+          return (
+            <Link
+              key={link.name}
+              href={link.href}
+              onClick={() => setIsOpen(false)}
+              className={cn(
+                "block text-lg font-medium py-3 border-b border-muted last:border-0 transition-colors",
+                isActive ? "text-primary" : "hover:text-primary"
+              )}
+            >
+              {link.name}
+            </Link>
+          );
+        })}
         
         <div className="pt-4 space-y-3">
           {mounted && (

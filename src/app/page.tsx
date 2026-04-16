@@ -73,7 +73,7 @@ export default function HomePage() {
           <div className="grid grid-cols-1 lg:grid-cols-2">
             <div className="p-5 md:p-12 space-y-6 md:space-y-8">
               <div className="space-y-3 md:space-y-4">
-                <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary rounded-full text-[10px] md:text-xs font-bold uppercase tracking-widest">
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-bold uppercase tracking-widest">
                   <MapPin className="h-3 w-3" /> Modern Facilities
                 </div>
                 <h2 className="text-2xl md:text-3xl font-headline font-bold text-primary">Everything you need for a perfect event</h2>
@@ -93,11 +93,11 @@ export default function HomePage() {
                 ].map((item, idx) => (
                   <div key={idx} className="flex flex-col md:flex-row items-center md:items-start gap-2 md:gap-3 p-3 md:p-4 rounded-xl md:rounded-2xl bg-muted/30 border border-muted text-center md:text-left">
                     <div className="p-1.5 md:p-2 bg-white rounded-lg shadow-sm">
-                      <item.icon className="h-4 w-4 md:h-5 md:w-5 text-primary" />
+                      <item.icon className="h-5 w-5 md:h-5 md:w-5 text-primary" />
                     </div>
                     <div>
-                      <p className="font-bold text-[10px] md:text-sm text-primary">{item.title}</p>
-                      <p className="text-[9px] md:text-xs text-muted-foreground hidden sm:block">{item.desc}</p>
+                      <p className="font-bold text-xs md:text-sm text-primary">{item.title}</p>
+                      <p className="text-xs md:text-xs text-muted-foreground">{item.desc}</p>
                     </div>
                   </div>
                 ))}
@@ -105,16 +105,17 @@ export default function HomePage() {
             </div>
             <div className="relative bg-muted min-h-[300px] md:min-h-[400px]">
               <div className="absolute inset-0">
-                <iframe 
-                  src="https://www.google.com/maps/embed?pb=!4v1776239036628!6m8!1m7!1sCAoSF0NJSE0wb2dLRUlDQWdJQ0tfLW1Da2dF!2m2!1d51.0160639!2d-3.1349833!3f260!4f10!5f0.7820865974627469" 
-                  className="w-full h-full border-0" 
-                  allowFullScreen 
-                  loading="lazy" 
+                <iframe
+                  src="https://www.google.com/maps/embed?pb=!4v1776239036628!6m8!1m7!1sCAoSF0NJSE0wb2dLRUlDQWdJQ0tfLW1Da2dF!2m2!1d51.0160639!2d-3.1349833!3f260!4f10!5f0.7820865974627469"
+                  title="Virtual tour of Bishops Hull Hub"
+                  className="w-full h-full border-0"
+                  allowFullScreen
+                  loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
                 />
               </div>
               <div className="absolute top-4 left-4 z-10">
-                <Badge className="bg-black/60 backdrop-blur-md text-white border-none px-4 py-2 uppercase tracking-tighter text-[10px] font-bold">
+                <Badge className="bg-black/60 backdrop-blur-md text-white border-none px-4 py-2 uppercase tracking-tighter text-xs font-bold">
                   Virtual Tour
                 </Badge>
               </div>

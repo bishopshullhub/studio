@@ -19,6 +19,7 @@ import Link from 'next/link';
 import { useFirebase, setDocumentNonBlocking, initiateAnonymousSignIn } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { sendEnquiryEmailAction } from '@/app/actions/send-email';
+import { checkAvailabilityAction, type AvailabilityResult } from '@/app/actions/check-availability';
 
 const formSchema = z.object({
   acknowledgedPolicies: z.boolean().refine(v => v === true, "Please acknowledge the policies to continue"),
@@ -40,7 +41,10 @@ const formSchema = z.object({
   }, "Bookings must be at least 14 days in advance"),
   startTime: z.string().min(1, "Start time required"),
   endTime: z.string().min(1, "End time required"),
-  attendance: z.string().min(1, "Est. attendance required"),
+  attendance: z.string().min(1, "Est. attendance required").refine(
+    (v) => parseInt(v) >= 1 && parseInt(v) <= 110,
+    "Attendance must be between 1 and 110 (maximum venue capacity)"
+  ),
   typeOfEvent: z.string().min(2, "Event type is required"),
   requirements: z.string().optional(),
   agreedToTerms: z.boolean().refine(v => v === true, "You must agree to the terms"),
@@ -62,6 +66,8 @@ export default function HirePage() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedData, setSubmittedData] = useState<any>(null);
+  const [availabilityResult, setAvailabilityResult] = useState<AvailabilityResult | null>(null);
+  const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
   const totalSteps = 5;
 
   useEffect(() => {
@@ -107,10 +113,69 @@ export default function HirePage() {
     if (diff <= 0) return null;
     const h = Math.floor(diff / 60);
     const m = diff % 60;
-    return `${h}h ${m}m`;
+    return { hours: h, minutes: m, totalMinutes: diff };
   };
 
-  const duration = calculateDuration();
+  const durationInfo = calculateDuration();
+  const duration = durationInfo ? `${durationInfo.hours > 0 ? `${durationInfo.hours}h ` : ''}${durationInfo.minutes > 0 ? `${durationInfo.minutes}m` : ''}`.trim() : null;
+
+  const calculateCost = () => {
+    if (!durationInfo) return null;
+    const totalHours = durationInfo.totalMinutes / 60;
+    if (totalHours >= 8) return { cost: 140, isDay: true };
+    const cost = Math.ceil(totalHours * 18 * 100) / 100;
+    return { cost, isDay: false };
+  };
+
+  const costInfo = calculateCost();
+
+  const snapToQuarterHour = (value: string, onChange: (v: string) => void) => {
+    if (!value) return;
+    const [h, m] = value.split(':').map(Number);
+    const snapped = Math.round(m / 15) * 15;
+    const finalH = snapped === 60 ? h + 1 : h;
+    const finalM = snapped === 60 ? 0 : snapped;
+    onChange(`${String(finalH).padStart(2, '0')}:${String(finalM).padStart(2, '0')}`);
+  };
+
+  // Minimum selectable end time is always 15 minutes after the chosen start time
+  const minEndTime = (() => {
+    if (!startTime) return undefined;
+    const [h, m] = startTime.split(':').map(Number);
+    const total = h * 60 + m + 15;
+    return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+  })();
+
+  // Clear end time whenever it would become invalid relative to the new start time
+  useEffect(() => {
+    if (startTime && endTime && endTime <= startTime) {
+      form.setValue('endTime', '', { shouldValidate: false });
+    }
+  }, [startTime]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Check availability against the live iCal feed whenever date + both times are set
+  const date = form.watch("date");
+  useEffect(() => {
+    if (!date || !startTime || !endTime || endTime <= startTime) {
+      setAvailabilityResult(null);
+      return;
+    }
+
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      setIsCheckingAvailability(true);
+      const result = await checkAvailabilityAction(date, startTime, endTime);
+      if (!cancelled) {
+        setAvailabilityResult(result);
+        setIsCheckingAvailability(false);
+      }
+    }, 600); // debounce — wait for the user to finish adjusting times
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [date, startTime, endTime]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const nextStep = async () => {
     let fieldsToValidate: (keyof FormValues)[] = [];
@@ -120,7 +185,7 @@ export default function HirePage() {
     }
     if (step === 2) fieldsToValidate = ['acknowledgedPolicies'];
     if (step === 3) fieldsToValidate = ['name', 'email', 'address', 'postcode', 'phone', 'preferredContact'];
-    if (step === 4) fieldsToValidate = ['date', 'startTime', 'endTime', 'attendance'];
+    if (step === 4) fieldsToValidate = ['typeOfEvent', 'date', 'startTime', 'endTime', 'attendance'];
 
     const isValid = await form.trigger(fieldsToValidate);
     if (isValid) setStep(prev => Math.min(prev + 1, totalSteps));
@@ -130,7 +195,7 @@ export default function HirePage() {
 
   async function onSubmit(values: FormValues) {
     setIsSubmitting(true);
-    const enquiryId = Math.random().toString(36).substring(7);
+    const enquiryId = crypto.randomUUID().replace(/-/g, '').substring(0, 8);
     const enquiryData = {
       id: enquiryId,
       name: values.name,
@@ -175,13 +240,18 @@ export default function HirePage() {
 
   const progress = (step / totalSteps) * 100;
 
+  const formatDate = (isoDate: string) =>
+    new Date(`${isoDate}T00:00:00`).toLocaleDateString('en-GB', {
+      day: 'numeric', month: 'long', year: 'numeric',
+    });
+
   const getSummaryText = () => {
     if (!submittedData) return "";
     return `
 BOOKING ENQUIRY SUMMARY
 ------------------------
 Enquiry ID: ${submittedData.id}
-Submitted: ${new Date(submittedData.submissionDateTime).toLocaleString()}
+Submitted: ${new Date(submittedData.submissionDateTime).toLocaleString('en-GB')}
 
 CONTACT INFORMATION:
 Name: ${submittedData.name}
@@ -191,7 +261,7 @@ Address: ${submittedData.postalAddress}, ${submittedData.postcode}
 Preferred Contact: ${submittedData.preferredContact}
 
 EVENT DETAILS:
-Date: ${submittedData.dateRequired}
+Date: ${formatDate(submittedData.dateRequired)}
 Times: ${submittedData.startTime} - ${submittedData.endTime}
 Type: ${submittedData.typeOfEvent}
 Attendance: ${submittedData.estimatedAttendance}
@@ -221,7 +291,7 @@ ${submittedData.additionalRequirements}
 
   if (isSubmitted) {
     return (
-      <div className="container mx-auto px-4 py-12 md:py-20 max-w-3xl">
+      <div className="container mx-auto px-4 py-12 md:py-20 max-w-3xl space-y-6">
         <Card className="border-none shadow-2xl overflow-hidden">
           <div className="bg-primary p-6 md:p-8 text-center text-primary-foreground">
             <div className="mx-auto w-12 h-12 md:w-16 md:h-16 bg-white/20 rounded-full flex items-center justify-center mb-4">
@@ -231,24 +301,42 @@ ${submittedData.additionalRequirements}
             <p className="opacity-90 mt-2 text-sm md:text-base">Thank you for contacting the Bishops Hull Hub.</p>
           </div>
           <CardContent className="p-6 md:p-8 space-y-6">
-            <div className="space-y-4">
-              <h2 className="text-lg md:text-xl font-bold text-primary border-b pb-2">Your Enquiry Details</h2>
+
+            {/* Email confirmation notice */}
+            <div className="bg-accent/10 border border-accent/20 p-4 rounded-xl flex gap-3 items-start">
+              <Mail className="h-4 w-4 md:h-5 md:w-5 text-primary shrink-0 mt-0.5" />
               <p className="text-xs md:text-sm text-muted-foreground">
-                Thanks for enquiring, we will get back to you within 3 days. Please be patient, we are run by volunteers and will endeavour to contact you as soon as possible to arrange your <strong>{submittedData.typeOfEvent}</strong>.
-              </p>
-              <pre className="bg-muted p-4 md:p-6 rounded-xl text-[10px] md:text-sm font-mono overflow-auto whitespace-pre-wrap border border-border select-all">
-                {getSummaryText()}
-              </pre>
-            </div>
-            
-            <div className="bg-accent/10 p-4 rounded-xl flex gap-3 items-start">
-              <Info className="h-4 w-4 md:h-5 md:w-5 text-primary shrink-0 mt-0.5" />
-              <p className="text-xs md:text-sm text-muted-foreground italic">
-                Our volunteer bookings secretary will review your request and contact you shortly.
+                A confirmation email has been sent to <strong className="text-foreground">{submittedData.emailAddress}</strong> with a copy of your enquiry details.
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 md:gap-4 pt-4">
+            {/* What happens next */}
+            <div className="space-y-3">
+              <h2 className="text-base md:text-lg font-bold text-primary">What happens next?</h2>
+              <ol className="space-y-3">
+                {[
+                  { step: "1", text: "Our volunteer bookings secretary will review your enquiry, usually within 3 working days." },
+                  { step: "2", text: "We will contact you by your preferred method to confirm availability and discuss your event." },
+                  { step: "3", text: "Once agreed, you will be asked to pay your deposit to secure the booking." },
+                  { step: "4", text: "Your date will be confirmed on our calendar once the deposit is received." },
+                ].map((item) => (
+                  <li key={item.step} className="flex gap-3 items-start">
+                    <span className="shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center mt-0.5">{item.step}</span>
+                    <p className="text-xs md:text-sm text-muted-foreground">{item.text}</p>
+                  </li>
+                ))}
+              </ol>
+            </div>
+
+            {/* Enquiry summary */}
+            <div className="space-y-3">
+              <h2 className="text-base md:text-lg font-bold text-primary border-b pb-2">Your Enquiry Summary</h2>
+              <pre className="bg-muted p-4 rounded-xl text-xs md:text-sm font-mono overflow-auto whitespace-pre-wrap border border-border select-all">
+                {getSummaryText()}
+              </pre>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 pt-2">
               <Button onClick={handleCopy} className="flex-1 gap-2" variant="outline">
                 <Copy className="h-4 w-4" /> Copy Summary
               </Button>
@@ -279,15 +367,15 @@ ${submittedData.additionalRequirements}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
             {[
               { label: "Hourly Hire", value: "£18" },
-              { label: "Day Hire", value: "£140.00", description: "Over 8 hours within a day"},
-              { label: "Day Deposit", value: "£50.00" },
-              { label: "Eve Deposit", value: "£100.00" },
+              { label: "Day Hire", value: "£140.00", description: "8+ hours within a single day" },
+              { label: "Daytime Deposit", value: "£50.00", description: "Required to confirm booking" },
+              { label: "Evening Deposit", value: "£100.00", description: "Required to confirm booking" },
             ].map((item, idx) => (
               <Card key={idx} className="border-none shadow-md bg-white overflow-hidden">
                 <CardContent className="p-3 md:p-6 flex flex-col items-center justify-center text-center">
-                  <span className="text-[9px] md:text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">{item.label}</span>
+                  <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">{item.label}</span>
                   <span className="text-xl md:text-3xl font-bold text-primary">{item.value}</span>
-                  {'description' in item && <span className="text-[9px] md:text-[11px] text-muted-foreground mt-1 leading-tight">{item.description}</span>}
+                  {'description' in item && <span className="text-xs text-muted-foreground mt-1 leading-tight">{item.description}</span>}
                 </CardContent>
               </Card>
             ))}
@@ -301,7 +389,7 @@ ${submittedData.additionalRequirements}
               <div className="mb-6 md:mb-10 space-y-4">
                 <div className="flex justify-between items-end mb-1">
                   <div>
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Step {step} of {totalSteps}</span>
+                    <span className="text-xs font-bold uppercase tracking-widest text-primary">Step {step} of {totalSteps}</span>
                     <h2 className="text-lg md:text-2xl font-headline font-bold text-primary">
                       {step === 1 && "Availability"}
                       {step === 2 && "Policies"}
@@ -326,8 +414,9 @@ ${submittedData.additionalRequirements}
                         </div>
                         <p className="text-sm text-muted-foreground">Check the schedule below for your preferred date.</p>
                         <div className="rounded-xl border border-border overflow-hidden bg-muted/20 w-full">
-                          <iframe 
-                            src="https://v2.hallmaster.co.uk/Scheduler/View/10228?startRoom=0&amp;hideTitle=true&amp;hideTopBar=true&amp;hideButtons=true&amp;disableLinks=true" 
+                          <iframe
+                            src="https://v2.hallmaster.co.uk/Scheduler/View/10228?startRoom=0&amp;hideTitle=true&amp;hideTopBar=true&amp;hideButtons=true&amp;disableLinks=true"
+                            title="Live booking availability calendar"
                             className="w-full h-[600px] md:h-[800px] border-none"
                           />
                         </div>
@@ -463,12 +552,24 @@ ${submittedData.additionalRequirements}
 
                   {step === 4 && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 animate-in fade-in slide-in-from-right-4 duration-500">
+                      <FormField
+                        control={form.control}
+                        name="typeOfEvent"
+                        render={({ field }) => (
+                          <FormItem className="md:col-span-2">
+                            <FormLabel>Type of Event</FormLabel>
+                            <FormControl><Input placeholder="e.g. Birthday Party, Community Meeting" {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
                       <div className="md:col-span-2 p-4 md:p-6 rounded-xl md:rounded-2xl bg-primary/5 border border-primary/10 space-y-2">
                         <div className="flex items-center gap-2 text-primary font-bold text-sm">
                           <Info className="h-4 w-4" />
                           Deposit Information
                         </div>
-                        <p className="text-xs">Eve events (£100), others (£50).</p>
+                        <p className="text-xs text-muted-foreground">A deposit is required to confirm your booking. Evening events require a <strong className="text-foreground">£100 deposit</strong>; all other bookings require a <strong className="text-foreground">£50 deposit</strong>. Deposits are payable on confirmation and are refundable subject to the hire conditions.</p>
                       </div>
 
                       <FormField
@@ -478,6 +579,7 @@ ${submittedData.additionalRequirements}
                           <FormItem className="md:col-span-2">
                             <FormLabel>Date Required</FormLabel>
                             <FormControl><Input type="date" min={minDateStr} {...field} /></FormControl>
+                            <p className="text-xs text-muted-foreground">Bookings must be made at least 14 days in advance.</p>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -488,7 +590,15 @@ ${submittedData.additionalRequirements}
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Start Time</FormLabel>
-                            <FormControl><Input type="time" step="900" {...field} /></FormControl>
+                            <FormControl>
+                              <Input
+                                type="time"
+                                step="900"
+                                min="08:00"
+                                {...field}
+                                onBlur={() => snapToQuarterHour(field.value, field.onChange)}
+                              />
+                            </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -498,19 +608,89 @@ ${submittedData.additionalRequirements}
                         name="endTime"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>End Time</FormLabel>
-                            <FormControl><Input type="time" step="900" {...field} /></FormControl>
+                            <FormLabel className={!startTime ? "text-muted-foreground" : ""}>
+                              End Time
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                type="time"
+                                step="900"
+                                min={minEndTime}
+                                disabled={!startTime}
+                                {...field}
+                                onBlur={() => snapToQuarterHour(field.value, field.onChange)}
+                              />
+                            </FormControl>
+                            {!startTime && (
+                              <p className="text-xs text-muted-foreground">Select a start time first</p>
+                            )}
                             <FormMessage />
                           </FormItem>
                         )}
                       />
                       
-                      {duration && (
-                        <div className="md:col-span-2 p-3 rounded-xl bg-accent/10 border border-accent/20 flex items-center gap-2">
-                          <Clock className="h-4 w-4 text-primary" />
-                          <span className="font-bold text-primary text-xs md:text-sm">Duration: {duration}</span>
+                      {duration && costInfo && (
+                        <div className="md:col-span-2 p-4 rounded-xl bg-accent/10 border border-accent/20 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Clock className="h-4 w-4 text-primary" />
+                              <span className="font-bold text-primary text-xs md:text-sm">Duration: {duration}</span>
+                            </div>
+                            <div className="text-right">
+                              <span className="font-bold text-primary text-sm md:text-base">£{costInfo.cost.toFixed(2)}</span>
+                              {costInfo.isDay && (
+                                <span className="block text-xs text-muted-foreground">Day rate (8h+ cap)</span>
+                              )}
+                            </div>
+                          </div>
+                          {!costInfo.isDay && (
+                            <p className="text-xs text-muted-foreground">
+                              Estimated hire cost at £18/hr. Bookings over 8 hours are capped at £140.
+                            </p>
+                          )}
                         </div>
                       )}
+
+                      {/* Live availability check */}
+                      <div className="md:col-span-2">
+                        {isCheckingAvailability && (
+                          <div className="flex items-center gap-2 p-3 rounded-xl bg-muted/40 border border-muted text-muted-foreground text-xs">
+                            <Loader2 className="h-4 w-4 animate-spin shrink-0" />
+                            Checking live calendar for conflicts…
+                          </div>
+                        )}
+
+                        {!isCheckingAvailability && availabilityResult?.status === 'available' && (
+                          <div className="flex items-center gap-2 p-3 rounded-xl bg-green-50 border border-green-200 text-green-800 text-xs">
+                            <CheckCircle2 className="h-4 w-4 shrink-0" />
+                            <span><strong>This time slot looks free.</strong> No conflicts found on the live calendar.</span>
+                          </div>
+                        )}
+
+                        {!isCheckingAvailability && availabilityResult?.status === 'clash' && (
+                          <div className="p-3 rounded-xl bg-red-50 border border-red-200 space-y-2">
+                            <div className="flex items-center gap-2 text-red-800 text-xs font-bold">
+                              <AlertTriangle className="h-4 w-4 shrink-0" />
+                              This time slot conflicts with {availabilityResult.clashes.length} existing booking{availabilityResult.clashes.length > 1 ? 's' : ''}.
+                            </div>
+                            <ul className="space-y-1 pl-6">
+                              {availabilityResult.clashes.map((clash, i) => (
+                                <li key={i} className="text-xs text-red-700">
+                                  <strong>{clash.summary}</strong> — {new Date(clash.start).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })} to {new Date(clash.end).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+                                </li>
+                              ))}
+                            </ul>
+                            <p className="text-xs text-red-600 pl-6">Please choose a different time. You can still submit this enquiry and our team will contact you, but the date is unlikely to be available.</p>
+                          </div>
+                        )}
+
+                        {!isCheckingAvailability && availabilityResult?.status === 'error' && (
+                          <div className="flex items-center gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs">
+                            <Info className="h-4 w-4 shrink-0" />
+                            {availabilityResult.message}
+                          </div>
+                        )}
+                      </div>
 
                       <FormField
                         control={form.control}
@@ -518,7 +698,8 @@ ${submittedData.additionalRequirements}
                         render={({ field }) => (
                           <FormItem className="md:col-span-2">
                             <FormLabel>Est. Attendance</FormLabel>
-                            <FormControl><Input type="number" placeholder="e.g. 50" {...field} /></FormControl>
+                            <FormControl><Input type="number" min="1" max="110" placeholder="e.g. 50" {...field} /></FormControl>
+                            <p className="text-xs text-muted-foreground">Maximum venue capacity is 110 people.</p>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -528,17 +709,6 @@ ${submittedData.additionalRequirements}
 
                   {step === 5 && (
                     <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-                      <FormField
-                        control={form.control}
-                        name="typeOfEvent"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Type of Event</FormLabel>
-                            <FormControl><Input placeholder="e.g. Birthday Party" {...field} /></FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
                       <FormField
                         control={form.control}
                         name="requirements"
@@ -603,7 +773,7 @@ ${submittedData.additionalRequirements}
                 ].map((item, idx) => (
                   <div key={idx} className="flex items-center gap-3 p-2 md:p-3 rounded-lg bg-muted/30">
                     <item.icon className="h-4 w-4 text-primary shrink-0" />
-                    <div><p className="text-[8px] md:text-[10px] text-muted-foreground uppercase font-bold">{item.label}</p><p className="text-xs md:text-sm font-semibold">{item.value}</p></div>
+                    <div><p className="text-xs text-muted-foreground uppercase font-bold">{item.label}</p><p className="text-xs md:text-sm font-semibold">{item.value}</p></div>
                   </div>
                 ))}
               </CardContent>

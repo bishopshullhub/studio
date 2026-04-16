@@ -123,6 +123,7 @@ export default function GardenGallery() {
 
         {/* Timeline Slider */}
         <div className="mb-14 px-4">
+          <p className="text-center text-muted-foreground text-sm mb-4">Take a trip in the Hub garden through the seasons.</p>
           {/* Active season label */}
           <p className="text-center text-emerald-700 font-semibold text-lg mb-6">
             {activeSeason.icon} {activeSeason.label}

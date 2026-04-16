@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Mail, MapPin, Phone } from 'lucide-react';
+import { Mail, MapPin } from 'lucide-react';
 
 export default function Footer() {
   return (
@@ -27,9 +27,8 @@ export default function Footer() {
               <li><Link href="/whats-on" className="hover:text-primary transition-colors">What's On</Link></li>
               <li><Link href="/hire" className="hover:text-primary transition-colors">Hire Information</Link></li>
               <li><Link href="/community" className="hover:text-primary transition-colors">Community Projects</Link></li>
-              <li><Link href="/faq" className="hover:text-primary transition-colors">FAQ's</Link></li>
+              <li><Link href="/faq" className="hover:text-primary transition-colors">FAQs</Link></li>
               <li><Link href="/bouncy-castles" className="hover:text-primary transition-colors">Bouncy Castles</Link></li>
-              <li><Link href="/admin" className="hover:text-primary transition-colors">Admin Portal</Link></li>
             </ul>
           </div>
 
@@ -43,11 +42,8 @@ export default function Footer() {
         </div>
 
         <div className="mt-12 pt-8 border-t border-muted-foreground/20 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-muted-foreground">
-          <p>© 2026 Bishops Hull Hub. All rights reserved.</p>
-          <div className="flex gap-6">
-            <span>Registered Charity in England & Wales</span>
-            <Link href="https://bhhub.co.uk" className="hover:text-primary">Official Site</Link>
-          </div>
+          <p>© {new Date().getFullYear()} Bishops Hull Hub. All rights reserved.</p>
+          <span>Registered Charity in England &amp; Wales</span>
         </div>
       </div>
     </footer>
