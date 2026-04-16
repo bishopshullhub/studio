@@ -392,7 +392,50 @@ ${submittedData.additionalRequirements}
             {/* Form Container - Reduced Mobile Padding */}
             <div className="bg-white rounded-2xl md:rounded-3xl p-4 md:p-8 shadow-xl border border-border">
               <div className="mb-6 md:mb-10 space-y-4">
-                <div className="flex justify-between items-end mb-1">
+                {/* Step indicator circles with labels */}
+                {(() => {
+                  const stepLabels = ["Availability", "Policies", "Contact", "Event Details", "Requirements"];
+                  return (
+                    <div className="flex justify-between items-start mb-2">
+                      {stepLabels.map((label, i) => {
+                        const stepNum = i + 1;
+                        const isActive = stepNum === step;
+                        const isComplete = stepNum < step;
+                        return (
+                          <div key={label} className="flex flex-col items-center gap-1.5 flex-1">
+                            {/* Connector line */}
+                            <div className="relative w-full flex items-center justify-center">
+                              {i > 0 && (
+                                <div className={cn(
+                                  "absolute right-1/2 top-3 h-0.5 w-full -translate-y-1/2",
+                                  isComplete || isActive ? "bg-primary/40" : "bg-muted"
+                                )} />
+                              )}
+                              <div className={cn(
+                                "relative z-10 h-6 w-6 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all duration-300",
+                                isActive
+                                  ? "bg-primary text-white border-primary shadow-md shadow-primary/30 scale-110"
+                                  : isComplete
+                                  ? "bg-primary/20 border-primary/50 text-primary"
+                                  : "bg-background border-muted text-muted-foreground"
+                              )}>
+                                {isComplete ? <Check className="h-3 w-3" /> : stepNum}
+                              </div>
+                            </div>
+                            <span className={cn(
+                              "hidden sm:block text-xs text-center font-medium leading-tight transition-colors duration-300",
+                              isActive ? "text-primary" : isComplete ? "text-primary/60" : "text-muted-foreground/50"
+                            )}>
+                              {label}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
+                <Progress value={progress} className="h-1.5 md:h-2" />
+                <div className="flex justify-between items-end">
                   <div>
                     <span className="text-xs font-bold uppercase tracking-widest text-primary">Step {step} of {totalSteps}</span>
                     <h2 className="text-lg md:text-2xl font-headline font-bold text-primary">
@@ -405,7 +448,6 @@ ${submittedData.additionalRequirements}
                   </div>
                   <span className="text-xs font-medium text-muted-foreground">{Math.round(progress)}%</span>
                 </div>
-                <Progress value={progress} className="h-1.5 md:h-2" />
               </div>
 
               <Form {...form}>

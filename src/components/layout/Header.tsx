@@ -46,7 +46,7 @@ export default function Header() {
     <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
       <div className="container mx-auto px-4 h-20 flex items-center justify-between">
         <Link href="/" className="flex items-center group">
-          <span className="font-headline font-bold text-xl text-primary transition-colors group-hover:text-primary/80">
+          <span className="font-marker text-xl text-primary transition-colors group-hover:text-primary/80">
             Bishops Hull Hub
           </span>
         </Link>
@@ -60,10 +60,10 @@ export default function Header() {
                 key={link.name}
                 href={link.href}
                 className={cn(
-                  "text-sm font-medium transition-colors hover:text-primary relative",
+                  "text-sm font-medium transition-all duration-200 rounded-full px-3 py-1",
                   isActive
-                    ? "text-primary after:absolute after:bottom-[-4px] after:left-0 after:right-0 after:h-0.5 after:bg-primary after:rounded-full"
-                    : "text-foreground/70"
+                    ? "bg-primary/10 text-primary"
+                    : "text-foreground/70 hover:text-primary hover:bg-primary/5"
                 )}
               >
                 {link.name}
@@ -90,9 +90,16 @@ export default function Header() {
             <div className="w-20" /> /* Placeholder to maintain layout during hydration */
           )}
 
-          <Button asChild variant="default" className="bg-primary hover:bg-primary/90 shadow-md">
-            <Link href="/hire#booking-form">Book the Hub</Link>
-          </Button>
+          <div className="relative">
+            <span className="absolute inset-0 rounded-md bg-primary/30 animate-ping" style={{ animationIterationCount: 3 }} />
+            <Button
+              asChild
+              variant="default"
+              className="relative bg-gradient-to-r from-primary to-teal-500 hover:from-primary/90 hover:to-teal-500/90 text-white font-bold shadow-lg shadow-primary/40 hover:shadow-xl hover:shadow-primary/50 hover:scale-105 transition-all duration-200 border-0"
+            >
+              <Link href="/hire#booking-form">Book the Hub</Link>
+            </Button>
+          </div>
         </nav>
 
         {/* Mobile menu button */}
@@ -145,7 +152,11 @@ export default function Header() {
               ) : null}
             </>
           )}
-          <Button asChild className="w-full h-12 text-lg shadow-lg" onClick={() => setIsOpen(false)}>
+          <Button
+            asChild
+            className="w-full h-12 text-lg shadow-lg bg-gradient-to-r from-primary to-teal-500 hover:from-primary/90 hover:to-teal-500/90 font-bold border-0"
+            onClick={() => setIsOpen(false)}
+          >
             <Link href="/hire#booking-form">Book the Hub</Link>
           </Button>
         </div>

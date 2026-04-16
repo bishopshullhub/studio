@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CalendarDays, Ticket, Heart, HelpCircle, ArrowRight, ChefHat, Users, Volume2, MonitorPlay, Wifi, MapPin } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import HeroSection from '@/components/HeroSection';
+import ReviewsCarousel from '@/components/ReviewsCarousel';
 
 export default function HomePage() {
   const heroImage = PlaceHolderImages.find(img => img.id === 'hero-bg');
@@ -12,42 +14,13 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col gap-8 md:gap-16 pb-20">
-      {/* Hero Section - Compressed on Mobile */}
-      <section className="relative h-[40vh] md:h-[600px] flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          <Image
-            src={heroImage?.imageUrl || "https://picsum.photos/seed/bhh-hero/1200/600"}
-            alt="Bishops Hull Hub Exterior"
-            fill
-            className="object-cover"
-            priority
-            data-ai-hint="modern building community hall"
-          />
-          <div className="absolute inset-0 bg-black/40" />
-        </div>
-        
-        <div className="container relative z-10 text-center text-white px-4 space-y-4 md:space-y-6">
-          <h1 className="text-3xl md:text-6xl font-headline font-bold tracking-tight drop-shadow-md">
-            Welcome to the <span className="text-accent">Bishops Hull Hub</span>
-          </h1>
-          <p className="text-lg md:text-2xl max-w-2xl mx-auto font-medium drop-shadow-sm">
-            The heart of our village community.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
-            <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground text-base md:text-lg px-8 h-12 md:h-14">
-              <Link href="/whats-on">View Schedule</Link>
-            </Button>
-            <Button asChild size="lg" variant="outline" className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/20 text-white text-base md:text-lg px-8 h-12 md:h-14">
-              <Link href="/hire">Make a Booking</Link>
-            </Button>
-          </div>
-        </div>
-      </section>
+      {/* Hero Section - Parallax with frosted glass scroll effect */}
+      <HeroSection heroImageUrl={heroImage?.imageUrl || "https://picsum.photos/seed/bhh-hero/1200/600"} />
 
       {/* Primary Call to Action Card - Moved Above Virtual Tour */}
       <section className="container mx-auto px-4 -mt-12 md:-mt-24 relative z-30">
         <div className="max-w-4xl mx-auto">
-          <Card className="bg-white shadow-xl border-t-4 border-t-primary hover:translate-y-[-4px] transition-all duration-300 rounded-[2rem]">
+          <Card className="bg-white shadow-xl border-t-4 border-t-primary hover:translate-y-[-4px] hover:shadow-2xl hover:shadow-primary/15 hover:border-primary/30 transition-all duration-300 ease-out rounded-[2rem]">
             <CardHeader className="p-5 md:p-8 pb-2">
               <div className="flex items-center gap-3">
                 <HelpCircle className="h-8 w-8 text-primary" />
@@ -143,7 +116,7 @@ export default function HomePage() {
               color: "bg-white"
             }
           ].map((item, idx) => (
-            <Card key={idx} className={`${item.color} shadow-xl border-t-4 border-t-primary hover:translate-y-[-4px] transition-all duration-300 rounded-[2rem]`}>
+            <Card key={idx} className={`${item.color} shadow-xl border-t-4 border-t-primary hover:translate-y-[-4px] hover:shadow-2xl hover:shadow-primary/15 hover:border-primary/30 transition-all duration-300 ease-out rounded-[2rem]`}>
               <CardHeader className="p-5 md:p-8">
                 <item.icon className="h-8 w-8 md:h-10 md:w-10 text-primary mb-2" />
                 <CardTitle className="text-xl md:text-2xl font-headline text-primary">{item.title}</CardTitle>
@@ -201,8 +174,11 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Google Reviews Carousel */}
+      <ReviewsCarousel />
+
       {/* Final CTA */}
-      <section className="bg-primary text-primary-foreground py-12 md:py-20">
+      <section className="bg-gradient-to-br from-primary via-primary to-teal-600 text-primary-foreground py-12 md:py-20">
         <div className="container mx-auto px-4 text-center space-y-6 md:space-y-8">
           <h2 className="text-2xl md:text-5xl font-headline font-bold">Ready to Host Your Event?</h2>
           <p className="text-base md:text-xl max-w-2xl mx-auto opacity-90">

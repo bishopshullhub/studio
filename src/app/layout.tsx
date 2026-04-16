@@ -2,12 +2,26 @@ import type {Metadata} from 'next';
 import './globals.css';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+import MobileFAB from '@/components/MobileFAB';
 import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 
 export const metadata: Metadata = {
   title: 'Bishops Hull Hub | Community Hub & Village Hall',
-  description: 'The central communication and operational tool for Bishops Hull village hall, facilitating bookings, promoting events, and managing community initiatives.',
+  description: 'The heart of our village community. Hire the hub for events, check what\'s on, and get involved with community projects in Bishops Hull, Taunton.',
+  openGraph: {
+    title: 'Bishops Hull Hub | Community Hub & Village Hall',
+    description: 'The heart of our village community. Hire the hub for events, check what\'s on, and get involved.',
+    url: 'https://bhhub.co.uk',
+    siteName: 'Bishops Hull Hub',
+    locale: 'en_GB',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Bishops Hull Hub',
+    description: 'The heart of our village community.',
+  },
 };
 
 export default function RootLayout({
@@ -20,7 +34,7 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Permanent+Marker&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body bg-background text-foreground flex flex-col min-h-screen antialiased">
         <FirebaseClientProvider>
@@ -29,6 +43,7 @@ export default function RootLayout({
             {children}
           </main>
           <Footer />
+          <MobileFAB />
           <Toaster />
         </FirebaseClientProvider>
       </body>
