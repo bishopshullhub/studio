@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bishops Hull Hub — Booking Process Flow</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f0f4f8;
+      color: #1a2332;
+      padding: 40px 20px 80px;
+    }
+
+    .page-header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+    .page-header .logo-bar {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: #1e3a5f;
+      color: white;
+      padding: 12px 28px;
+      border-radius: 50px;
+      margin-bottom: 20px;
+    }
+    .page-header .logo-bar .dot {
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: #f59e0b;
+    }
+    .page-header h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      color: #1e3a5f;
+      margin-bottom: 8px;
+    }
+    .page-header p {
+      color: #5a7a9a;
+      font-size: 1rem;
+    }
+
+    .flow-wrapper {
+      max-width: 860px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+    }
+
+    /* ── SECTION LABELS ── */
+    .section-label {
+      width: 100%;
+      text-align: center;
+      font-size: 0.7rem;
+      font-weight: 800;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 6px 0;
+      border-radius: 6px;
+      margin: 24px 0 4px;
+    }
+    .label-customer  { background: #dbeafe; color: #1d4ed8; }
+    .label-system    { background: #dcfce7; color: #166534; }
+    .label-admin     { background: #fef3c7; color: #92400e; }
+    .label-payment   { background: #f3e8ff; color: #6b21a8; }
+    .label-event     { background: #fce7f3; color: #9d174d; }
+
+    /* ── STEP CARDS ── */
+    .step {
+      width: 100%;
+      max-width: 640px;
+      border-radius: 14px;
+      padding: 18px 24px;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      position: relative;
+    }
+
+    .step .icon-wrap {
+      flex-shrink: 0;
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+    }
+
+    .step .content { flex: 1; }
+    .step .content h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+      line-height: 1.3;
+    }
+    .step .content p {
+      font-size: 0.82rem;
+      line-height: 1.55;
+      color: #4a5568;
+    }
+    .step .content ul {
+      margin-top: 6px;
+      padding-left: 16px;
+    }
+    .step .content ul li {
+      font-size: 0.82rem;
+      color: #4a5568;
+      margin-bottom: 3px;
+    }
+
+    /* Colour themes */
+    .step-customer  { background: #eff6ff; border: 2px solid #bfdbfe; }
+    .step-customer .icon-wrap { background: #3b82f6; color: white; }
+    .step-customer .content h3 { color: #1d4ed8; }
+
+    .step-system    { background: #f0fdf4; border: 2px solid #bbf7d0; }
+    .step-system .icon-wrap { background: #22c55e; color: white; }
+    .step-system .content h3 { color: #166534; }
+
+    .step-admin     { background: #fffbeb; border: 2px solid #fde68a; }
+    .step-admin .icon-wrap { background: #f59e0b; color: white; }
+    .step-admin .content h3 { color: #92400e; }
+
+    .step-payment   { background: #faf5ff; border: 2px solid #e9d5ff; }
+    .step-payment .icon-wrap { background: #a855f7; color: white; }
+    .step-payment .content h3 { color: #6b21a8; }
+
+    .step-event     { background: #fff1f2; border: 2px solid #fecdd3; }
+    .step-event .icon-wrap { background: #f43f5e; color: white; }
+    .step-event .content h3 { color: #9d174d; }
+
+    /* ── ARROWS ── */
+    .arrow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      margin: 2px 0;
+    }
+    .arrow-line {
+      width: 2px;
+      height: 28px;
+      background: #cbd5e1;
+    }
+    .arrow-head {
+      width: 0; height: 0;
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+      border-top: 10px solid #cbd5e1;
+    }
+    .arrow-label {
+      font-size: 0.7rem;
+      color: #94a3b8;
+      font-style: italic;
+      margin-top: 2px;
+    }
+
+    /* ── DECISION DIAMONDS ── */
+    .decision-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      max-width: 640px;
+      margin: 2px 0;
+    }
+    .diamond {
+      width: 200px; height: 70px;
+      background: #fff7ed;
+      border: 2px solid #fed7aa;
+      transform: rotate(0deg);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 8px 20px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #c2410c;
+      clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+      width: 220px;
+      height: 80px;
+    }
+    .decision-branches {
+      display: flex;
+      width: 100%;
+      max-width: 640px;
+      gap: 16px;
+      margin-top: 4px;
+    }
+    .branch {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .branch-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+    .branch-yes { background: #dcfce7; color: #166534; }
+    .branch-no  { background: #fee2e2; color: #991b1b; }
+
+    /* ── PARALLEL BOX ── */
+    .parallel-box {
+      width: 100%;
+      max-width: 640px;
+      background: #f0fdf4;
+      border: 2px solid #bbf7d0;
+      border-radius: 14px;
+      padding: 16px 20px;
+    }
+    .parallel-box h3 {
+      font-size: 0.8rem;
+      font-weight: 800;
+      color: #166534;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 10px;
+    }
+    .parallel-items {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .parallel-item {
+      background: white;
+      border: 1.5px solid #bbf7d0;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 0.8rem;
+    }
+    .parallel-item .pi-icon { font-size: 1.1rem; margin-bottom: 4px; }
+    .parallel-item .pi-title { font-weight: 700; color: #166534; margin-bottom: 2px; }
+    .parallel-item .pi-desc { color: #4a5568; }
+
+    /* ── END NODE ── */
+    .end-node {
+      background: #1e3a5f;
+      color: white;
+      border-radius: 50px;
+      padding: 14px 40px;
+      font-size: 1rem;
+      font-weight: 800;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(30,58,95,0.3);
+    }
+
+    /* ── STEP NUMBER BADGE ── */
+    .step-num {
+      position: absolute;
+      top: -10px;
+      left: -10px;
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      background: #1e3a5f;
+      color: white;
+      font-size: 0.7rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ── PRICING CALLOUT ── */
+    .pricing-callout {
+      width: 100%;
+      max-width: 640px;
+      background: white;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 14px 20px;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    .pricing-item {
+      text-align: center;
+      padding: 8px;
+      border-radius: 8px;
+    }
+    .pricing-item .pi-val {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: #1e3a5f;
+    }
+    .pricing-item .pi-lbl {
+      font-size: 0.72rem;
+      color: #64748b;
+      margin-top: 2px;
+    }
+    .pi-blue  { background: #eff6ff; }
+    .pi-green { background: #f0fdf4; }
+    .pi-amber { background: #fffbeb; }
+    .pi-purple{ background: #faf5ff; }
+
+    /* ── LEGEND ── */
+    .legend {
+      max-width: 640px;
+      width: 100%;
+      margin-top: 48px;
+      background: white;
+      border-radius: 14px;
+      padding: 20px 24px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    .legend h2 { font-size: 0.85rem; font-weight: 800; color: #1e3a5f; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 14px; }
+    .legend-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; }
+    .legend-dot { width: 14px; height: 14px; border-radius: 4px; flex-shrink: 0; }
+
+    @media print {
+      body { background: white; padding: 20px; }
+      .step, .parallel-box, .legend, .pricing-callout { box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="page-header">
+    <div class="logo-bar">
+      <span class="dot"></span>
+      <strong>Bishops Hull Hub</strong>
+      <span class="dot"></span>
+    </div>
+    <h1>Booking Process Flow</h1>
+    <p>How a hire enquiry moves from first contact to confirmed event &mdash; for reference by the Board of Trustees</p>
+  </div>
+
+  <div class="flow-wrapper">
+
+    <!-- ══════════════════════════════════════════
+         SECTION 1 — CUSTOMER JOURNEY (ONLINE)
+    ═══════════════════════════════════════════ -->
+    <div class="section-label label-customer">👤 Customer Journey — Online Booking Form</div>
+
+    <div class="step step-customer" style="position:relative">
+      <div class="step-num">1</div>
+      <div class="icon-wrap">🌐</div>
+      <div class="content">
+        <h3>Customer visits the website</h3>
+        <p>They click <strong>"Hire the Hub"</strong> in the menu and arrive at the booking page. They can see pricing at a glance before starting.</p>
+        <ul>
+          <li>Hourly hire: <strong>£18 / hour</strong></li>
+          <li>Full day (8+ hours): <strong>£140 flat rate</strong></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+    <div class="step step-customer" style="position:relative">
+      <div class="step-num">2</div>
+      <div class="icon-wrap">📅</div>
+      <div class="content">
+        <h3>Step 1 — Checks live availability</h3>
+        <p>A live calendar is displayed showing all existing bookings. The customer can browse to their preferred date to see if it is free <strong>before</strong> filling in any details.</p>
+      </div>
+    </div>
+
+    <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+    <div class="step step-customer" style="position:relative">
+      <div class="step-num">3</div>
+      <div class="icon-wrap">📋</div>
+      <div class="content">
+        <h3>Step 2 — Reads &amp; acknowledges policies</h3>
+        <p>The customer must tick a box confirming they have read the key rules before proceeding:</p>
+        <ul>
+          <li>Bouncy castle requirements</li>
+          <li>No fireworks permitted (proximity to homes)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+    <div class="step step-customer" style="position:relative">
+      <div class="step-num">4</div>
+      <div class="icon-wrap">👤</div>
+      <div class="content">
+        <h3>Step 3 — Enters contact details</h3>
+        <p>Full name, email address, phone number, home address &amp; postcode, and their preferred contact method (email or phone).</p>
+      </div>
+    </div>
+
+    <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+    <div class="step step-customer" style="position:relative">
+      <div class="step-num">5</div>
+      <div class="icon-wrap">🎉</div>
+      <div class="content">
+        <h3>Step 4 — Enters event details</h3>
+        <p>They fill in what they need for the actual event:</p>
+        <ul>
+          <li>Type of event (e.g. Birthday Party, Community Meeting)</li>
+          <li>Date required — <strong>must be at least 14 days from today</strong></li>
+          <li>Start and end time (in 15-minute slots, earliest start 08:00)</li>
+          <li>Estimated attendance — <strong>maximum 110 people</strong></li>
+        </ul>
+        <p style="margin-top:6px; color:#1d4ed8; font-style:italic;">As they type, the website automatically checks the live calendar for clashes and calculates the estimated hire cost.</p>
+      </div>
+    </div>
+
+    <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+    <!-- SYSTEM: live availability check -->
+    <div class="step step-system" style="position:relative; max-width:640px">
+      <div class="icon-wrap">🔄</div>
+      <div class="content">
+        <h3>System auto-checks: is the slot free?</h3>
+        <p>Instantly queries the live calendar. If there is already a booking at that time, a <strong>red warning</strong> is shown — the customer is advised to pick a different time.</p>
+      </div>
+    </div>
+
+    <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+    <div class="step step-customer" style="position:relative">
+      <div class="step-num">6</div>
+      <div class="icon-wrap">✏️</div>
+      <div class="content">
+        <h3>Step 5 — Additional requirements &amp; agreement</h3>
+        <p>Any special requests (e.g. kitchen access, bar service). The customer must <strong>tick to agree</strong> to the Standard Conditions of Hire before they can submit.</p>
+      </div>
+    </div>
+
+    <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+    <div class="step step-customer" style="position:relative">
+      <div class="step-num">7</div>
+      <div class="icon-wrap">📤</div>
+      <div class="content">
+        <h3>Customer clicks "Submit Enquiry"</h3>
+        <p>The form is sent. An <strong>Enquiry Reference Number</strong> is automatically generated (e.g. <code>a3f82b1c</code>).</p>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         SECTION 2 — AUTOMATIC SYSTEM ACTIONS
+    ═══════════════════════════════════════════ -->
+    <div class="section-label label-system" style="margin-top:32px">⚙️ Automatic System Actions (happens instantly, behind the scenes)</div>
+
+    <div class="parallel-box">
+      <h3>Two things happen at the same time, automatically:</h3>
+      <div class="parallel-items">
+        <div class="parallel-item">
+          <div class="pi-icon">🗄️</div>
+          <div class="pi-title">Saved to database</div>
+          <div class="pi-desc">All enquiry details are stored securely, marked as <strong>"Pending"</strong> status.</div>
+        </div>
+        <div class="parallel-item">
+          <div class="pi-icon">📧</div>
+          <div class="pi-title">Two emails sent</div>
+          <div class="pi-desc">
+            <strong>(1)</strong> Confirmation email to the customer.<br>
+            <strong>(2)</strong> Notification email to our bookings secretary.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+    <div class="step step-system" style="position:relative">
+      <div class="icon-wrap">✅</div>
+      <div class="content">
+        <h3>Customer sees confirmation screen</h3>
+        <p>A "What happens next?" page is shown with clear steps, their enquiry summary, and a unique reference number they can keep for their records.</p>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         SECTION 3 — ADMIN / BOOKINGS SECRETARY
+    ═══════════════════════════════════════════ -->
+    <div class="section-label label-admin" style="margin-top:32px">🏢 Bookings Secretary (Admin)</div>
+
+    <div class="step step-admin" style="position:relative">
+      <div class="icon-wrap">📬</div>
+      <div class="content">
+        <h3>Secretary receives notification email</h3>
+        <p>An email arrives with all the enquiry details. The secretary logs into the <strong>secure admin portal</strong> on the website to see all enquiries in a dashboard (similar to a Kanban board).</p>
+      </div>
+    </div>
+
+    <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+    <div class="step step-admin" style="position:relative">
+      <div class="icon-wrap">👀</div>
+      <div class="content">
+        <h3>Secretary reviews the enquiry</h3>
+        <p>Status is moved from <strong>"Pending"</strong> → <strong>"Reviewed"</strong>. The secretary checks the calendar, verifies the date is genuinely available, and assesses the request.</p>
+        <p style="margin-top:6px; color:#92400e; font-style:italic;">Target: respond to all enquiries within 3 working days.</p>
+      </div>
+    </div>
+
+    <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+    <!-- DECISION: Can we accommodate? -->
+    <div class="decision-wrap">
+      <div style="font-size:0.75rem; font-weight:700; color:#c2410c; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.08em;">Decision Point</div>
+      <div class="diamond">Can we accommodate this booking?</div>
+    </div>
+    <div class="decision-branches" style="max-width:640px">
+      <div class="branch">
+        <div class="branch-label branch-no">✗ No / Unable to help</div>
+        <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+        <div class="step step-event" style="position:relative; max-width:100%">
+          <div class="icon-wrap">❌</div>
+          <div class="content">
+            <h3>Enquiry rejected</h3>
+            <p>Status set to <strong>"Rejected"</strong>. Customer is contacted to explain and, where possible, suggest an alternative date.</p>
+          </div>
+        </div>
+      </div>
+      <div class="branch">
+        <div class="branch-label branch-yes">✓ Yes — proceed</div>
+        <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+        <div class="step step-admin" style="position:relative; max-width:100%">
+          <div class="icon-wrap">📞</div>
+          <div class="content">
+            <h3>Secretary contacts customer</h3>
+            <p>By the customer's preferred method (email or phone). Availability &amp; event details are confirmed verbally or in writing.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         SECTION 4 — PAYMENT & CONFIRMATION
+    ═══════════════════════════════════════════ -->
+    <div class="section-label label-payment" style="margin-top:32px">💳 Payment &amp; Booking Confirmation</div>
+
+    <div class="step step-payment" style="position:relative">
+      <div class="icon-wrap">🧾</div>
+      <div class="content">
+        <h3>Hire charge invoice sent to customer</h3>
+        <p>The customer is invoiced for the <strong>full hire charge</strong> to secure the date. Payment is due within 14 days of the invoice date, or before the event — whichever is sooner.</p>
+        <ul>
+          <li>Hourly hire: <strong>£18 / hour</strong></li>
+          <li>Full day (8+ hours): <strong>£140 flat rate</strong></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+    <div class="step step-payment" style="position:relative">
+      <div class="icon-wrap">💰</div>
+      <div class="content">
+        <h3>Customer pays hire charge</h3>
+        <p>Once the hire charge is received the booking is officially secured.</p>
+      </div>
+    </div>
+
+    <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+    <div class="step step-admin" style="position:relative">
+      <div class="icon-wrap">🗓️</div>
+      <div class="content">
+        <h3>Booking confirmed on admin portal &amp; calendar</h3>
+        <p>Status is moved to <strong>"Confirmed"</strong>. The date is added to the live calendar — it will now show as unavailable for any future enquiries.</p>
+      </div>
+    </div>
+
+    <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+    <div class="step step-payment" style="position:relative">
+      <div class="icon-wrap">🔔</div>
+      <div class="content">
+        <h3>Refundable deposit requested — 2 weeks before the event</h3>
+        <p>Two weeks before the event date, the customer is asked to pay a <strong>refundable security deposit</strong>:</p>
+        <ul>
+          <li>Events finishing before 8pm: <strong>£50 deposit</strong></li>
+          <li>Events finishing after 8pm: <strong>£100 deposit</strong></li>
+        </ul>
+        <p style="margin-top:6px; color:#6b21a8; font-style:italic;">This deposit is held against any damage or cleaning costs, and returned within 7 days after the event if all is well.</p>
+      </div>
+    </div>
+
+    <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+    <div class="step step-payment" style="position:relative">
+      <div class="icon-wrap">💳</div>
+      <div class="content">
+        <h3>Customer pays refundable deposit</h3>
+        <p>Deposit received and held. The event can now proceed as planned.</p>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         SECTION 5 — THE EVENT
+    ═══════════════════════════════════════════ -->
+    <div class="section-label label-event" style="margin-top:32px">🎊 The Event &amp; After</div>
+
+    <div class="step step-event" style="position:relative">
+      <div class="icon-wrap">🎉</div>
+      <div class="content">
+        <h3>Event takes place</h3>
+        <p>Hirer is responsible for the venue during their booked time (including set-up and clear-up time). They must leave the hall clean and tidy before their hire period ends.</p>
+        <ul>
+          <li>Maximum 110 people in the building</li>
+          <li>No fireworks, no illegal substances</li>
+          <li>No smoking inside or in the paved area</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+    <div class="step step-event" style="position:relative">
+      <div class="icon-wrap">🔍</div>
+      <div class="content">
+        <h3>Post-event venue inspection</h3>
+        <p>The Hub team inspects the premises after the event.</p>
+      </div>
+    </div>
+
+    <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+    <!-- DECISION: Venue OK? -->
+    <div class="decision-wrap">
+      <div style="font-size:0.75rem; font-weight:700; color:#c2410c; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.08em;">Decision Point</div>
+      <div class="diamond">Is the venue left in a satisfactory condition?</div>
+    </div>
+    <div class="decision-branches" style="max-width:640px">
+      <div class="branch">
+        <div class="branch-label branch-no">✗ Damage / Cleaning needed</div>
+        <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+        <div class="step step-event" style="position:relative; max-width:100%">
+          <div class="icon-wrap">🧹</div>
+          <div class="content">
+            <h3>Costs deducted from deposit</h3>
+            <p>Cleaning: £15/hr (before 8pm) or £20/hr (after 8pm) — minimum 1 hour. Photo evidence taken. Remainder of deposit returned.</p>
+          </div>
+        </div>
+      </div>
+      <div class="branch">
+        <div class="branch-label branch-yes">✓ All good</div>
+        <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+        <div class="step step-payment" style="position:relative; max-width:100%">
+          <div class="icon-wrap">💚</div>
+          <div class="content">
+            <h3>Full deposit returned</h3>
+            <p>Refunded to the hirer within <strong>7 days</strong> of the event.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow" style="margin-top:12px"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+    <div class="end-node">✓ Booking Complete</div>
+
+    <!-- ══════════════════════════════════════════
+         KEY FACTS SUMMARY
+    ═══════════════════════════════════════════ -->
+    <div class="legend" style="margin-top:48px">
+      <h2>📌 Key Facts &amp; Limits at a Glance</h2>
+      <div class="pricing-callout" style="margin-bottom:16px; border:none; padding:0; grid-template-columns: repeat(4, 1fr);">
+        <div class="pricing-item pi-blue">
+          <div class="pi-val">£18/hr</div>
+          <div class="pi-lbl">Hourly hire rate</div>
+        </div>
+        <div class="pricing-item pi-green">
+          <div class="pi-val">£140</div>
+          <div class="pi-lbl">Full day (8h+)</div>
+        </div>
+        <div class="pricing-item pi-amber">
+          <div class="pi-val">£50 / £100</div>
+          <div class="pi-lbl">Deposit (day / eve)</div>
+        </div>
+        <div class="pricing-item pi-purple">
+          <div class="pi-val">110</div>
+          <div class="pi-lbl">Max capacity</div>
+        </div>
+      </div>
+      <div class="legend-grid">
+        <div class="legend-item"><div class="legend-dot" style="background:#3b82f6"></div> Customer action (online form)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#22c55e"></div> Automatic (system handles it)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div> Admin / bookings secretary</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#a855f7"></div> Payment step</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#f43f5e"></div> On the day / post-event</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#c2410c"></div> Decision point</div>
+      </div>
+      <p style="font-size:0.75rem; color:#94a3b8; margin-top:16px;">Bookings must be made at least 14 days in advance. Cancellation within 14 days of the event date: full hire fee still due if we cannot re-let the slot. This document was generated from the live website codebase — April 2026.</p>
+    </div>
+
+  </div><!-- /flow-wrapper -->
+
+</body>
+</html>

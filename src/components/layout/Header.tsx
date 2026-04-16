@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Menu, X, LogIn, LogOut, ShieldCheck } from 'lucide-react';
+import { Menu, X, LogOut, ShieldCheck } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { useFirebase, initiateAnonymousSignIn } from '@/firebase';
@@ -84,11 +84,7 @@ export default function Header() {
                     <LogOut className="h-4 w-4" /> Sign Out
                   </Button>
                 </div>
-              ) : (
-                <Button asChild variant="outline" size="sm" className="gap-2">
-                  <Link href="/login"><LogIn className="h-4 w-4" /> Login</Link>
-                </Button>
-              )}
+              ) : null}
             </>
           ) : (
             <div className="w-20" /> /* Placeholder to maintain layout during hydration */
@@ -146,11 +142,7 @@ export default function Header() {
                     <LogOut className="h-5 w-5" /> Sign Out
                   </Button>
                 </>
-              ) : (
-                <Button asChild variant="outline" className="w-full gap-2 justify-start" onClick={() => setIsOpen(false)}>
-                  <Link href="/login"><LogIn className="h-5 w-5" /> Portal Login</Link>
-                </Button>
-              )}
+              ) : null}
             </>
           )}
           <Button asChild className="w-full h-12 text-lg shadow-lg" onClick={() => setIsOpen(false)}>

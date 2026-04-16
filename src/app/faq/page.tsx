@@ -14,6 +14,10 @@ export default function FAQPage() {
       icon: Phone,
     },
     {
+      question: "What is the height of the gate height barrier?",
+      answer: "The height barrier is 2m high. If you expect vehicles that will exceed this heigh, please contact the booking manager or On-Duty contact number",
+    },
+    {
       question: "What do I do with any rubbish generated during my hire?",
       answer: "We ask all hirers to take any rubbish generated during their hire away with them to keep the Hub clean for everyone.",
     },

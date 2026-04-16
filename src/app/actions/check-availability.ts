@@ -4,6 +4,20 @@ import ical from 'node-ical';
 import { isSameDay } from 'date-fns';
 
 const ICAL_URL = 'https://v2.hallmaster.co.uk/api/ical/GetICalStream?HallId=10228';
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+// Module-level cache — persists across requests on the same server instance
+let cachedFeed: { data: Record<string, ical.CalendarComponent>; fetchedAt: number } | null = null;
+
+async function getICalEvents(): Promise<Record<string, ical.CalendarComponent>> {
+  const now = Date.now();
+  if (cachedFeed && now - cachedFeed.fetchedAt < CACHE_TTL_MS) {
+    return cachedFeed.data;
+  }
+  const data = await ical.async.fromURL(ICAL_URL);
+  cachedFeed = { data, fetchedAt: now };
+  return data;
+}
 
 export type ClashingEvent = {
   summary: string;
@@ -15,6 +29,18 @@ export type AvailabilityResult =
   | { status: 'available' }
   | { status: 'clash'; clashes: ClashingEvent[] }
   | { status: 'error'; message: string };
+
+/**
+ * Warms the iCal cache without returning any data.
+ * Call this on page load so the feed is ready before the user needs it.
+ */
+export async function prefetchAvailabilityCache(): Promise<void> {
+  try {
+    await getICalEvents();
+  } catch {
+    // Silently ignore — the real check will handle any error
+  }
+}
 
 /**
  * Checks a requested date + time window against the live Hallmaster iCal feed.
@@ -31,7 +57,7 @@ export async function checkAvailabilityAction(
     const requestedStart = new Date(`${date}T${startTime}:00`);
     const requestedEnd   = new Date(`${date}T${endTime}:00`);
 
-    const events = await ical.async.fromURL(ICAL_URL);
+    const events = await getICalEvents();
 
     const clashes: ClashingEvent[] = [];
 

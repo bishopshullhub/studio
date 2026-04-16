@@ -19,7 +19,7 @@ import Link from 'next/link';
 import { useFirebase, setDocumentNonBlocking, initiateAnonymousSignIn } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { sendEnquiryEmailAction } from '@/app/actions/send-email';
-import { checkAvailabilityAction, type AvailabilityResult } from '@/app/actions/check-availability';
+import { checkAvailabilityAction, prefetchAvailabilityCache, type AvailabilityResult } from '@/app/actions/check-availability';
 
 const formSchema = z.object({
   acknowledgedPolicies: z.boolean().refine(v => v === true, "Please acknowledge the policies to continue"),
@@ -145,6 +145,11 @@ export default function HirePage() {
     const total = h * 60 + m + 15;
     return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
   })();
+
+  // Warm the iCal cache as soon as the page loads so it's ready when the user reaches step 4
+  useEffect(() => {
+    prefetchAvailabilityCache();
+  }, []);
 
   // Clear end time whenever it would become invalid relative to the new start time
   useEffect(() => {
@@ -680,7 +685,16 @@ ${submittedData.additionalRequirements}
                                 </li>
                               ))}
                             </ul>
-                            <p className="text-xs text-red-600 pl-6">Please choose a different time. You can still submit this enquiry and our team will contact you, but the date is unlikely to be available.</p>
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-2 pl-6 pt-1">
+                              <p className="text-xs text-red-600 flex-1">Please choose a different date or time.</p>
+                              <button
+                                type="button"
+                                onClick={() => setStep(1)}
+                                className="text-xs font-semibold text-red-700 underline underline-offset-2 hover:text-red-900 shrink-0"
+                              >
+                                ← View schedule (Step 1)
+                              </button>
+                            </div>
                           </div>
                         )}
 
@@ -728,7 +742,7 @@ ${submittedData.additionalRequirements}
                             <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
                             <div className="space-y-1 leading-none">
                               <FormLabel className="cursor-pointer text-xs md:text-sm">
-                                I agree to the <Link href="/hire-agreement" className="text-primary hover:underline">Standard Conditions</Link>.
+                                I agree to the <Link href="/hire-agreement" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">Standard Conditions</Link>.
                               </FormLabel>
                               <FormMessage />
                             </div>
