@@ -493,6 +493,16 @@ ${submittedData.additionalRequirements}
                             Not permitted due to proximity to homes.
                           </p>
                         </div>
+
+                        <div className="p-4 md:p-6 rounded-xl md:rounded-2xl bg-rose-50/50 border border-rose-100 space-y-2">
+                          <div className="flex items-center gap-2 text-rose-700">
+                            <AlertTriangle className="h-4 w-4" />
+                            <h3 className="font-bold">Weddings</h3>
+                          </div>
+                          <p className="text-xs md:text-sm text-muted-foreground">
+                            Unfortunately we are unable to accommodate wedding ceremonies or formal receptions.
+                          </p>
+                        </div>
                       </div>
 
                       <FormField
