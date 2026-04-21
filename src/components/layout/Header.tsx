@@ -31,6 +31,7 @@ export default function Header() {
     { name: 'Community', href: '/community' },
     { name: 'Hub Garden', href: '/garden-gallery' },
     { name: 'FAQ', href: '/faq' },
+    { name: 'Find Us', href: '/find-us' },
   ];
 
   const handleLogout = async () => {

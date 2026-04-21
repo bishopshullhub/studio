@@ -27,18 +27,17 @@ export async function sendEnquiryEmailAction(enquiryData: any) {
     if (process.env.RESEND_API_KEY && process.env.RESEND_API_KEY !== 're_your_api_key_here') {
       // Send to Admin
       await resend.emails.send({
-        from: 'Hub Bookings <onboarding@resend.dev>',
+        from: 'Hub Bookings <bookings@bishopshullhub.co.uk>',
         to: ADMIN_EMAIL,
         subject: adminEmail.subject,
         html: adminEmail.htmlBody,
         text: adminEmail.textBody,
       });
 
-      // Send to Customer (Note: In Resend restricted mode, this still goes to verified ADMIN_EMAIL)
-      // We log the target recipient in comments or logs for simulation
+      // Send to Customer
       await resend.emails.send({
-        from: 'Bishops Hull Hub <onboarding@resend.dev>',
-        to: ADMIN_EMAIL, // Forcing to Admin due to Resend restrictions, but in production this would be enquiryData.emailAddress
+        from: 'Bishops Hull Hub <noreply@bishopshullhub.co.uk>',
+        to: enquiryData.emailAddress,
         subject: customerEmail.subject,
         html: customerEmail.htmlBody,
         text: customerEmail.textBody,
@@ -128,7 +127,7 @@ Review here: ${reviewUrl}
 
     if (process.env.RESEND_API_KEY && !process.env.RESEND_API_KEY.includes('re_your_api_key')) {
       const { error } = await resend.emails.send({
-        from: 'Hub Security <onboarding@resend.dev>',
+        from: 'Hub Security <security@bishopshullhub.co.uk>',
         to: recipients,
         subject: formattedEmail.subject,
         html: formattedEmail.htmlBody,
