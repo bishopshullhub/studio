@@ -121,7 +121,7 @@ export default function HomePage() {
           {[
             {
               title: "Event Tickets",
-              desc: "Book upcoming village events and fundraisers.",
+              desc: "Book upcoming village events and fundraisers. Event's such as our Fish and Chips Quiz Night",
               icon: Ticket,
               href: "/whats-on#tickets",
               color: "bg-white"

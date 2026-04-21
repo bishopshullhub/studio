@@ -39,7 +39,7 @@ export default function FAQPage() {
     },
     {
       question: "Are other tables available if needed?",
-      answer: "Yes, it is possible to hire additional tables from the Playing Field Trust. Please contact Paul for more information.",
+      answer: "Yes, it is possible to hire additional tables from the Playing Field Trust. Please contact you Hub contact for more information.",
     },
     {
       question: "Where is the fire assembly point and who is responsible for evacuations?",
