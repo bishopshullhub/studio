@@ -84,7 +84,8 @@ export default function FindUsPage() {
               Google Maps
             </a>
             <a
-              href="maps://maps.apple.com/?q=Bishops+Hull+Hub,+Bishops+Hull+Hill,+Taunton+TA1+5EB"
+              href="https://maps.apple.com/?q=Bishops+Hull+Hub,+Bishops+Hull+Hill,+Taunton+TA1+5EB"
+              target="_blank"
               className="inline-flex items-center gap-2 bg-card border border-border text-foreground font-semibold rounded-full px-5 py-2.5 text-sm hover:bg-muted hover:scale-105 transition-all duration-200"
             >
               <Navigation className="h-4 w-4" />
