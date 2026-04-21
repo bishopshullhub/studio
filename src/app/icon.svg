@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112.64" fill="hsl(171,44%,38%)"/>
+  <circle cx="256" cy="256" r="188.00639999999999" fill="rgba(0,0,0,0.12)"/>
+  <line x1="256" y1="173.05599999999998" x2="256" y2="71.68" stroke="rgba(255,255,255,0.45)" stroke-width="12.8" stroke-linecap="round"/><line x1="327.8316110914965" y1="214.528" x2="415.6258024255477" y2="163.84" stroke="rgba(255,255,255,0.45)" stroke-width="12.8" stroke-linecap="round"/><line x1="327.8316110914965" y1="297.472" x2="415.6258024255477" y2="348.15999999999997" stroke="rgba(255,255,255,0.45)" stroke-width="12.8" stroke-linecap="round"/><line x1="256" y1="338.944" x2="256" y2="440.32" stroke="rgba(255,255,255,0.45)" stroke-width="12.8" stroke-linecap="round"/><line x1="184.16838890850352" y1="297.47200000000004" x2="96.3741975744523" y2="348.1600000000001" stroke="rgba(255,255,255,0.45)" stroke-width="12.8" stroke-linecap="round"/><line x1="184.16838890850352" y1="214.528" x2="96.3741975744523" y2="163.83999999999997" stroke="rgba(255,255,255,0.45)" stroke-width="12.8" stroke-linecap="round"/>
+  <circle cx="256" cy="71.68" r="25.6" fill="hsl(133,71%,61%)"/><circle cx="415.6258024255477" cy="163.84" r="25.6" fill="white"/><circle cx="415.6258024255477" cy="348.15999999999997" r="25.6" fill="white"/><circle cx="256" cy="440.32" r="25.6" fill="hsl(133,71%,61%)"/><circle cx="96.3741975744523" cy="348.1600000000001" r="25.6" fill="white"/><circle cx="96.3741975744523" cy="163.83999999999997" r="25.6" fill="white"/>
+  <circle cx="256" cy="256" r="51.2" fill="hsl(133,71%,61%)"/>
+  <circle cx="256" cy="256" r="25.6" fill="hsl(171,44%,38%)"/>
+</svg>

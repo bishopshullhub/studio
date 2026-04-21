@@ -8,7 +8,7 @@ runConfig:
 
 env:
   - variable: NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
-    value: AIzaSyDr8jkeeYNeq-XHqnIp1pPOOewFwmgjalA
+    secret: google-maps-api-key
     availability:
       - BUILD
       - RUNTIME

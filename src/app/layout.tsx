@@ -9,6 +9,11 @@ import { FirebaseClientProvider } from '@/firebase/client-provider';
 export const metadata: Metadata = {
   title: 'Bishops Hull Hub | Community Hub & Village Hall',
   description: 'The heart of our village community. Hire the hub for events, check what\'s on, and get involved with community projects in Bishops Hull, Taunton.',
+  icons: {
+    icon: '/icon.svg',
+    shortcut: '/icon.svg',
+    apple: '/icon.svg',
+  },
   openGraph: {
     title: 'Bishops Hull Hub | Community Hub & Village Hall',
     description: 'The heart of our village community. Hire the hub for events, check what\'s on, and get involved.',
