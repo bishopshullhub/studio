@@ -91,27 +91,27 @@ export default function WhatsOnPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-4 md:grid-cols-7 gap-2 md:gap-4">
+        <div className="grid grid-cols-7 gap-1 md:gap-4">
           {daysInWeek.map((day) => {
             const isSelected = isSameDay(day, selectedDate);
             const isCurrentDay = isToday(day);
-            
+
             return (
               <button
                 key={day.toISOString()}
                 onClick={() => setSelectedDate(day)}
                 className={cn(
-                  "flex flex-col items-center justify-center py-4 px-2 rounded-2xl transition-all duration-200 border-2",
-                  isSelected 
-                    ? "bg-primary border-primary text-primary-foreground shadow-lg scale-105 z-10" 
+                  "flex flex-col items-center justify-center py-3 px-1 rounded-2xl transition-all duration-200 border-2 min-w-0",
+                  isSelected
+                    ? "bg-primary border-primary text-primary-foreground shadow-lg scale-105 z-10"
                     : "bg-transparent border-transparent hover:bg-muted text-muted-foreground",
                   !isSelected && isCurrentDay && "border-accent/30 bg-accent/5"
                 )}
               >
-                <span className={cn("text-xs font-bold uppercase tracking-widest mb-1", isSelected ? "text-primary-foreground/70" : "text-muted-foreground")}>
+                <span className={cn("text-[10px] font-bold uppercase tracking-tight mb-1 leading-none", isSelected ? "text-primary-foreground/70" : "text-muted-foreground")}>
                   {format(day, 'EEE')}
                 </span>
-                <span className="text-xl font-bold font-headline">
+                <span className="text-base md:text-xl font-bold font-headline leading-none">
                   {format(day, 'd')}
                 </span>
                 {isCurrentDay && !isSelected && (
