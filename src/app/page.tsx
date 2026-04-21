@@ -17,9 +17,9 @@ export default function HomePage() {
       {/* Hero Section - Parallax with frosted glass scroll effect */}
       <HeroSection heroImageUrl={heroImage?.imageUrl || "https://picsum.photos/seed/bhh-hero/1200/600"} />
 
-      {/* Primary Call to Action Card - Moved Above Virtual Tour */}
+      {/* Primary Call to Action Cards */}
       <section className="container mx-auto px-4 -mt-12 md:-mt-24 relative z-30">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
           <Card className="bg-white shadow-xl border-t-4 border-t-primary hover:translate-y-[-4px] hover:shadow-2xl hover:shadow-primary/15 hover:border-primary/30 transition-all duration-300 ease-out rounded-[2rem]">
             <CardHeader className="p-5 md:p-8 pb-2">
               <div className="flex items-center gap-3">
@@ -29,11 +29,29 @@ export default function HomePage() {
             </CardHeader>
             <CardContent className="p-5 md:p-8 pt-0 space-y-4">
               <p className="text-muted-foreground text-sm md:text-base">Find answers about venue hire, capacities, facilities, and more before you book.</p>
-              <Link 
-                href="/faq" 
+              <Link
+                href="/faq"
                 className="inline-flex items-center text-primary font-semibold hover:gap-2 transition-all"
               >
                 Read our FAQs <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white shadow-xl border-t-4 border-t-primary hover:translate-y-[-4px] hover:shadow-2xl hover:shadow-primary/15 hover:border-primary/30 transition-all duration-300 ease-out rounded-[2rem]">
+            <CardHeader className="p-5 md:p-8 pb-2">
+              <div className="flex items-center gap-3">
+                <MapPin className="h-8 w-8 text-primary" />
+                <CardTitle className="text-xl md:text-2xl font-headline text-primary">How to Find Us</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="p-5 md:p-8 pt-0 space-y-4">
+              <p className="text-muted-foreground text-sm md:text-base">We&apos;re on Bishops Hull Playing Field, off Bishops Hull Hill. Get directions, maps, and travel info.</p>
+              <Link
+                href="/find-us"
+                className="inline-flex items-center text-primary font-semibold hover:gap-2 transition-all"
+              >
+                Get directions <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </CardContent>
           </Card>
