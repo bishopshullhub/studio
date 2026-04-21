@@ -30,7 +30,7 @@ const entrancePhotos = [
   {
     src: "/images/find-us/HUB-Gate.jpg",
     alt: "Car park height restriction gate",
-    caption: "Height restriction applies at the car park entrance — contact the duty manager if assistance is required",
+    caption: "Height restriction applies at the car park entrance at 2.0m — contact the duty manager if assistance is required",
   },
 ];
 

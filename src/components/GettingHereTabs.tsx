@@ -12,8 +12,8 @@ const steps = {
     },
     {
       icon: Car,
-      title: "Head along Bishops Hull Hill",
-      detail: "Coming from Taunton town centre, travel west along Bishops Hull Hill",
+      title: "Head onto Bishops Hull Hill",
+      detail: "Coming from Taunton town centre, travel west along Wellington Road and onto Silk Mills Road. The turn left at the traffic lights onto Bishops Hull Hill",
     },
     {
       icon: MapPin,
@@ -57,7 +57,7 @@ const steps = {
     {
       icon: MapPin,
       title: "Head west from town centre",
-      detail: "From The Parade, follow West Street and continue onto Bishops Hull Road",
+      detail: "From town centre, follow Wellington Road and Mountway Road and continue across Silk Mills Road onto Bishops Hull Hill",
     },
     {
       icon: MapPin,
