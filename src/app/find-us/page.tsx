@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { MapPin, Copy, Navigation, ExternalLink, ParkingCircle, Phone, Mail, AlertTriangle } from "lucide-react";
+import { MapPin, Navigation, ExternalLink, ParkingCircle, Mail, AlertTriangle, Lock } from "lucide-react";
 import { FindUsMap } from "@/components/FindUsMap";
 import { GettingHereTabs } from "@/components/GettingHereTabs";
 import { CopyAddressButton } from "@/components/CopyAddressButton";
@@ -18,16 +18,19 @@ const entrancePhotos = [
     caption: "The Hub building on the playing field",
   },
   {
-    src: "https://picsum.photos/seed/bhh-entrance/800/600",
-    alt: "Playing field entrance",
-    caption: "The playing field entrance off Bishops Hull Hill",
-    isPlaceholder: true,
+    src: "/images/find-us/HUB-RoadEntrance.jpg",
+    alt: "Car park entrance off Bishops Hull Hill",
+    caption: "The car park entrance is off Bishops Hull Hill",
   },
   {
-    src: "https://picsum.photos/seed/bhh-carpark/800/600",
-    alt: "On-site car park",
-    caption: "Free on-site parking in the playing field car park",
-    isPlaceholder: true,
+    src: "/images/find-us/HUB-CarParkEntrance.jpg",
+    alt: "Hub car park",
+    caption: "Free on-site parking in the Hub car park",
+  },
+  {
+    src: "/images/find-us/HUB-Gate.jpg",
+    alt: "Car park height restriction gate",
+    caption: "Height restriction applies at the car park entrance — contact the duty manager if assistance is required",
   },
 ];
 
@@ -121,8 +124,11 @@ export default function FindUsPage() {
       <section className="py-12 md:py-16 bg-muted/30">
         <div className="container mx-auto px-4">
           <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">Getting here</h2>
-          <p className="text-muted-foreground mb-8">
+          <p className="text-muted-foreground mb-2">
             Step-by-step directions for every way of travelling to the Hub.
+          </p>
+          <p className="text-sm text-primary font-medium mb-8">
+            The Hub is centrally located in Bishops Hull — walking is our preferred and encouraged way to visit, with footpath access from across the village.
           </p>
           <GettingHereTabs />
         </div>
@@ -142,7 +148,23 @@ export default function FindUsPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {/* POV entrance video */}
+          <div className="rounded-3xl overflow-hidden bg-card border border-border shadow-md mb-8">
+            <video
+              src="/images/find-us/HUB-EntryVID.mp4"
+              controls
+              playsInline
+              className="w-full max-h-[480px] object-cover"
+            />
+            <div className="px-5 py-4 flex items-center gap-2">
+              <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
+              <p className="text-sm font-medium text-foreground">
+                Point-of-view approach — arriving at the Hub from Bishops Hull Hill
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             {entrancePhotos.map((photo, i) => (
               <div
                 key={i}
@@ -154,15 +176,8 @@ export default function FindUsPage() {
                     alt={photo.alt}
                     fill
                     className="object-cover group-hover:scale-105 transition-transform duration-500"
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    sizes="(max-width: 640px) 100vw, 50vw"
                   />
-                  {photo.isPlaceholder && (
-                    <div className="absolute inset-0 bg-muted/60 flex items-center justify-center">
-                      <p className="text-xs text-muted-foreground bg-background/80 rounded-full px-3 py-1">
-                        Photo coming soon
-                      </p>
-                    </div>
-                  )}
                 </div>
                 <div className="p-4">
                   <p className="text-sm font-medium text-foreground">{photo.caption}</p>
@@ -184,9 +199,15 @@ export default function FindUsPage() {
               </div>
               <div>
                 <h3 className="font-semibold text-foreground mb-1">Free Parking</h3>
-                <p className="text-sm text-muted-foreground">
-                  Free on-site parking is available in the playing field car park — no charge, no time limit.
+                <p className="text-sm text-muted-foreground mb-2">
+                  Free on-site parking is available in the Hub car park, reserved for users of the Hub and Playing Field only.
                 </p>
+                <div className="flex items-start gap-1.5">
+                  <Lock className="h-3.5 w-3.5 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <p className="text-xs text-amber-700">
+                    The car park gate may be locked outside of operating hours to prevent unauthorised access to the playing field.
+                  </p>
+                </div>
               </div>
             </div>
 
