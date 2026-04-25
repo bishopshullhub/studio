@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, LayoutDashboard, LogOut, Inbox, User, Mail, Phone, Clock, Calendar, ShieldAlert, Key, LogIn, FileText, CheckCircle2, MoreVertical, ArrowRight, XCircle, Clock3, LayoutGrid, List, MapPin, Users, ChevronDown, ChevronUp, ShieldCheck, UserPlus, Trash2, Send, AlertCircle, Info, HelpCircle, Plus, Pencil, Save } from 'lucide-react';
 import { useFirebase, useCollection, useMemoFirebase, useDoc, setDocumentNonBlocking, deleteDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
-import { doc, collection, query, orderBy, updateDoc } from 'firebase/firestore';
+import { doc, collection, query, orderBy, updateDoc, onSnapshot } from 'firebase/firestore';
 import { Badge } from '@/components/ui/badge';
 import { signOut } from 'firebase/auth';
 import Link from 'next/link';
@@ -84,11 +84,27 @@ export default function AdminPortal() {
 
   const { data: securityContacts, isLoading: loadingSecurity } = useCollection(securityQuery);
 
-  const faqsQuery = useMemoFirebase(() => {
-    if (!hasAdminAccess) return null;
-    return query(collection(firestore, 'faqs'), orderBy('order', 'asc'));
+  const [faqItems,    setFaqItems]    = useState<any[] | null>(null);
+  const [loadingFaqs, setLoadingFaqs] = useState(false);
+
+  useEffect(() => {
+    if (!hasAdminAccess) return;
+    setLoadingFaqs(true);
+    const q = query(collection(firestore, 'faqs'), orderBy('order', 'asc'));
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        setFaqItems(snap.docs.map(d => ({ ...d.data(), id: d.id })));
+        setLoadingFaqs(false);
+      },
+      (err) => {
+        console.error('FAQs unavailable:', err.message);
+        setFaqItems([]);
+        setLoadingFaqs(false);
+      }
+    );
+    return () => unsub();
   }, [firestore, hasAdminAccess]);
-  const { data: faqItems, isLoading: loadingFaqs } = useCollection(faqsQuery);
 
   const upcomingBookings = useMemo(() => {
     if (!enquiries) return [];
