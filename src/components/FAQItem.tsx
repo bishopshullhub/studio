@@ -1,6 +1,5 @@
 'use client';
 
-import { useRef } from 'react';
 import { ChevronDown, Link2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { type FAQEntry, CAT_COLORS } from '@/app/faq/FAQClient';
@@ -8,8 +7,8 @@ import { type FAQEntry, CAT_COLORS } from '@/app/faq/FAQClient';
 interface FAQItemProps {
   faq: FAQEntry;
   isOpen: boolean;
-  onToggle: (id: number) => void;
-  onCopy: (id: number) => void;
+  onToggle: (id: string) => void;
+  onCopy: (id: string) => void;
   searchTerm: string;
 }
 

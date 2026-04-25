@@ -5,8 +5,8 @@ import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, LayoutDashboard, LogOut, Inbox, User, Mail, Phone, Clock, Calendar, ShieldAlert, Key, LogIn, FileText, CheckCircle2, MoreVertical, ArrowRight, XCircle, Clock3, LayoutGrid, List, MapPin, Users, ChevronDown, ChevronUp, ShieldCheck, UserPlus, Trash2, Send, AlertCircle, Info } from 'lucide-react';
-import { useFirebase, useCollection, useMemoFirebase, useDoc, setDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
+import { Loader2, LayoutDashboard, LogOut, Inbox, User, Mail, Phone, Clock, Calendar, ShieldAlert, Key, LogIn, FileText, CheckCircle2, MoreVertical, ArrowRight, XCircle, Clock3, LayoutGrid, List, MapPin, Users, ChevronDown, ChevronUp, ShieldCheck, UserPlus, Trash2, Send, AlertCircle, Info, HelpCircle, Plus, Pencil, Save } from 'lucide-react';
+import { useFirebase, useCollection, useMemoFirebase, useDoc, setDocumentNonBlocking, deleteDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
 import { doc, collection, query, orderBy, updateDoc } from 'firebase/firestore';
 import { Badge } from '@/components/ui/badge';
 import { signOut } from 'firebase/auth';
@@ -27,6 +27,31 @@ const STATUS_COLUMNS = [
 ];
 
 const PRIMARY_ADMIN_EMAIL = 'bishopshullhub@gmail.com';
+
+const FAQ_CAT_COLORS: Record<string, string> = {
+  venue: 'hsl(171,44%,38%)', hire: 'hsl(197,55%,42%)', access: 'hsl(43,65%,48%)',
+  safety: 'hsl(0,68%,52%)', rules: 'hsl(133,55%,38%)',
+};
+const FAQ_CAT_LABELS: Record<string, string> = {
+  venue: 'The Venue', hire: 'During Your Hire', access: 'Access & Parking',
+  safety: 'Safety', rules: 'Rules & Policies',
+};
+const DEFAULT_FAQS = [
+  { cat: 'hire',   q: "How do I contact someone when there's an issue during my hire?",           a: "Please call the number displayed above the notice board labelled 'On-Duty Contact number'.", order: 1 },
+  { cat: 'access', q: 'What is the height of the gate height barrier?',                           a: 'The height barrier is 2m high. If you expect vehicles that will exceed this height, please contact the booking manager or On-Duty contact number.', order: 2 },
+  { cat: 'hire',   q: 'What do I do with any rubbish generated during my hire?',                  a: 'We ask all hirers to take any rubbish generated during their hire away with them to keep the Hub clean for everyone.', order: 3 },
+  { cat: 'venue',  q: 'What is the total number of people allowed in the hall?',                  a: 'The maximum capacity for the hall is 110 people.', order: 4 },
+  { cat: 'rules',  q: "Is there a 'Premises' licence for the Hub?",                               a: 'No, the Hub does not hold a general premises licence.', order: 5 },
+  { cat: 'rules',  q: 'Are dogs allowed on the premises?',                                        a: 'No dogs are allowed on the premises, with the exception of guide and assistant dogs.', order: 6 },
+  { cat: 'venue',  q: 'How many tables and chairs are available?',                               a: 'We have 12 tables and approximately 80 chairs available for use in the hall.', order: 7 },
+  { cat: 'venue',  q: 'Are other tables available if needed?',                                    a: 'Yes, it is possible to hire additional tables from the Playing Field Trust. Please contact your Hub contact for more information.', order: 8 },
+  { cat: 'safety', q: 'Where is the fire assembly point and who is responsible for evacuations?', a: "In the event of a fire or the fire alarm sounding, guests should assemble outside on the playing field. It is the hirer's responsibility to ensure everyone is safely out and to call the fire brigade.", order: 9 },
+  { cat: 'venue',  q: 'What is the size and floor space of the Hub?',                             a: 'The main hall is 14.8m long × 9m wide. It features a vaulted sloping roof with a maximum height of 4m.', order: 10 },
+  { cat: 'access', q: 'What parking is available?',                                               a: 'There are 18 dedicated parking spaces at the Hub, with additional parking available within the village.', order: 11 },
+  { cat: 'venue',  q: 'What external space is available for use?',                                a: 'We have a front south-facing terrace facing the playing field, directly accessible from the main hall. It measures approximately 23m × 2.5m.', order: 12 },
+  { cat: 'rules',  q: 'Can we have a bouncy castle in the Hall?',                                 a: 'Yes, provided the equipment is for internal use (to avoid floor damage) and has a limited height to avoid the ceiling lights and projector.', order: 13 },
+  { cat: 'rules',  q: 'Can we use stage smoke or dry ice?',                                       a: 'It is not advisable. In certain circumstances, such as warm temperatures, stage smoke can trigger the smoke alarms.', order: 14 },
+];
 
 export default function AdminPortal() {
   const { toast } = useToast();
@@ -58,6 +83,12 @@ export default function AdminPortal() {
   }, [firestore, hasAdminAccess]);
 
   const { data: securityContacts, isLoading: loadingSecurity } = useCollection(securityQuery);
+
+  const faqsQuery = useMemoFirebase(() => {
+    if (!hasAdminAccess) return null;
+    return query(collection(firestore, 'faqs'), orderBy('order', 'asc'));
+  }, [firestore, hasAdminAccess]);
+  const { data: faqItems, isLoading: loadingFaqs } = useCollection(faqsQuery);
 
   const upcomingBookings = useMemo(() => {
     if (!enquiries) return [];
@@ -105,6 +136,35 @@ export default function AdminPortal() {
 
   const handleLogout = async () => {
     await signOut(auth);
+  };
+
+  const handleAddFaq = (cat: string, q: string, a: string) => {
+    const faqId = Math.random().toString(36).substring(7);
+    const order = (faqItems?.length ?? 0) + 1;
+    setDocumentNonBlocking(doc(firestore, 'faqs', faqId), {
+      id: faqId, cat, q, a, order, createdAt: new Date().toISOString(),
+    }, {});
+    toast({ title: 'FAQ Added' });
+  };
+
+  const handleDeleteFaq = (faqId: string) => {
+    deleteDocumentNonBlocking(doc(firestore, 'faqs', faqId));
+    toast({ title: 'FAQ Deleted' });
+  };
+
+  const handleUpdateFaq = (faqId: string, data: { cat: string; q: string; a: string }) => {
+    updateDocumentNonBlocking(doc(firestore, 'faqs', faqId), data);
+    toast({ title: 'FAQ Updated' });
+  };
+
+  const handleSeedFaqs = () => {
+    DEFAULT_FAQS.forEach((faq, i) => {
+      const faqId = Math.random().toString(36).substring(7);
+      setDocumentNonBlocking(doc(firestore, 'faqs', faqId), {
+        id: faqId, ...faq, order: i + 1, createdAt: new Date().toISOString(),
+      }, {});
+    });
+    toast({ title: 'FAQs Seeded', description: '14 default FAQs have been added.' });
   };
 
   if (isUserLoading || checkingAdmin) {
@@ -185,6 +245,9 @@ export default function AdminPortal() {
             <TabsTrigger value="security" className="rounded-xl px-6 h-full data-[state=active]:bg-primary data-[state=active]:text-white">
               <ShieldCheck className="h-4 w-4 mr-2" /> Security Team
             </TabsTrigger>
+            <TabsTrigger value="faqs" className="rounded-xl px-6 h-full data-[state=active]:bg-primary data-[state=active]:text-white">
+              <HelpCircle className="h-4 w-4 mr-2" /> FAQs
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="enquiries" className="space-y-8 animate-in fade-in">
@@ -261,6 +324,89 @@ export default function AdminPortal() {
               </Card>
              </div>
           </TabsContent>
+
+          <TabsContent value="faqs" className="animate-in fade-in">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Add FAQ */}
+              <Card className="border-none shadow-xl bg-white">
+                <CardHeader>
+                  <CardTitle className="text-primary">Add FAQ</CardTitle>
+                  <CardDescription>New questions appear on the public FAQ page immediately.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      const fd = new FormData(e.currentTarget);
+                      handleAddFaq(fd.get('cat') as string, fd.get('q') as string, fd.get('a') as string);
+                      (e.target as HTMLFormElement).reset();
+                    }}
+                    className="space-y-4"
+                  >
+                    <div className="space-y-1.5">
+                      <Label>Category</Label>
+                      <select
+                        name="cat"
+                        required
+                        defaultValue="venue"
+                        className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      >
+                        {Object.entries(FAQ_CAT_LABELS).map(([id, label]) => (
+                          <option key={id} value={id}>{label}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Question</Label>
+                      <Input name="q" placeholder="Enter the question…" required />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Answer</Label>
+                      <textarea
+                        name="a"
+                        placeholder="Enter the answer…"
+                        required
+                        rows={4}
+                        className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                      />
+                    </div>
+                    <Button type="submit" className="w-full gap-2">
+                      <Plus className="h-4 w-4" /> Add FAQ
+                    </Button>
+                  </form>
+                </CardContent>
+              </Card>
+
+              {/* FAQ list */}
+              <Card className="border-none shadow-xl bg-white">
+                <CardHeader className="flex flex-row items-center justify-between pb-4">
+                  <CardTitle className="text-primary">All FAQs</CardTitle>
+                  {faqItems && <Badge variant="secondary">{faqItems.length} total</Badge>}
+                </CardHeader>
+                <CardContent className="space-y-2 max-h-[560px] overflow-y-auto pr-1">
+                  {loadingFaqs ? (
+                    <div className="py-10 text-center"><Loader2 className="h-6 w-6 animate-spin mx-auto" /></div>
+                  ) : !faqItems || faqItems.length === 0 ? (
+                    <div className="text-center py-10 space-y-4">
+                      <p className="text-sm text-muted-foreground">No FAQs yet. Add one using the form, or seed the defaults.</p>
+                      <Button variant="outline" onClick={handleSeedFaqs} className="gap-2">
+                        <Plus className="h-4 w-4" /> Seed Default FAQs
+                      </Button>
+                    </div>
+                  ) : (
+                    faqItems.map((faq: any) => (
+                      <FAQAdminItem
+                        key={faq.id}
+                        faq={faq}
+                        onDelete={handleDeleteFaq}
+                        onUpdate={handleUpdateFaq}
+                      />
+                    ))
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
         </Tabs>
       </div>
     </div>
@@ -330,10 +476,10 @@ function KanbanCard({ enquiry, onUpdateStatus, onSendToSecurity, isList }: { enq
         )}
 
         {enquiry.status === 'Pending' && (
-          <Button 
-            variant="secondary" 
-            size="sm" 
-            className="w-full gap-2 text-[10px] h-8 mt-2" 
+          <Button
+            variant="secondary"
+            size="sm"
+            className="w-full gap-2 text-[10px] h-8 mt-2"
             onClick={handleReviewClick}
             disabled={isSending}
           >
@@ -343,5 +489,88 @@ function KanbanCard({ enquiry, onUpdateStatus, onSendToSecurity, isList }: { enq
         )}
       </div>
     </Card>
+  );
+}
+
+function FAQAdminItem({
+  faq,
+  onDelete,
+  onUpdate,
+}: {
+  faq: any;
+  onDelete: (id: string) => void;
+  onUpdate: (id: string, data: { cat: string; q: string; a: string }) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [q,   setQ]   = useState(faq.q);
+  const [a,   setA]   = useState(faq.a);
+  const [cat, setCat] = useState(faq.cat);
+
+  const handleCancel = () => {
+    setEditing(false);
+    setQ(faq.q);
+    setA(faq.a);
+    setCat(faq.cat);
+  };
+
+  if (editing) {
+    return (
+      <div className="p-3 bg-muted/20 rounded-xl border-2 border-primary/20 space-y-2.5">
+        <select
+          value={cat}
+          onChange={e => setCat(e.target.value)}
+          className="w-full h-9 rounded-md border border-input bg-background px-3 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          {Object.entries(FAQ_CAT_LABELS).map(([id, label]) => (
+            <option key={id} value={id}>{label}</option>
+          ))}
+        </select>
+        <Input value={q} onChange={e => setQ(e.target.value)} placeholder="Question" className="text-sm h-9" />
+        <textarea
+          value={a}
+          onChange={e => setA(e.target.value)}
+          rows={3}
+          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        />
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            className="gap-1.5 h-8"
+            onClick={() => { onUpdate(faq.id, { q, a, cat }); setEditing(false); }}
+          >
+            <Save className="h-3 w-3" /> Save
+          </Button>
+          <Button size="sm" variant="ghost" className="h-8" onClick={handleCancel}>
+            Cancel
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-start justify-between gap-3 p-3 bg-muted/20 rounded-xl">
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1.5 mb-1">
+          <span
+            className="w-2 h-2 rounded-full flex-shrink-0"
+            style={{ background: FAQ_CAT_COLORS[faq.cat] ?? '#888' }}
+          />
+          <span className="text-[0.65rem] font-bold uppercase tracking-wider text-muted-foreground">
+            {FAQ_CAT_LABELS[faq.cat] ?? faq.cat}
+          </span>
+        </div>
+        <p className="text-sm font-semibold text-primary leading-snug">{faq.q}</p>
+        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2 leading-relaxed">{faq.a}</p>
+      </div>
+      <div className="flex gap-1 flex-shrink-0 mt-0.5">
+        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditing(true)}>
+          <Pencil className="h-3 w-3" />
+        </Button>
+        <Button variant="ghost" size="icon" className="h-7 w-7 text-red-500" onClick={() => onDelete(faq.id)}>
+          <Trash2 className="h-3 w-3" />
+        </Button>
+      </div>
+    </div>
   );
 }
