@@ -6,8 +6,8 @@ import { cn } from '@/lib/utils';
 import FAQItem from '@/components/FAQItem';
 import FAQCategoryNav from '@/components/FAQCategoryNav';
 import { Search, X, Info, Loader2 } from 'lucide-react';
-import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy } from 'firebase/firestore';
+import { useFirebase } from '@/firebase';
+import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 
 /* ── TYPES & CONFIG ───────────────────────────────────────────────── */
 export type FAQCategory = 'venue' | 'hire' | 'access' | 'safety' | 'rules';
@@ -51,6 +51,8 @@ export default function FAQClient() {
   const [toast,            setToast]            = useState(false);
   const [flash,            setFlash]            = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [allFaqsData,      setAllFaqsData]      = useState<FAQEntry[] | null>(null);
+  const [loadingFaqs,      setLoadingFaqs]      = useState(true);
 
   const questionsRef  = useRef<HTMLDivElement>(null);
   const pendingRef    = useRef<{ cat: CategoryId; search: string } | null>(null);
@@ -59,11 +61,6 @@ export default function FAQClient() {
   const searchTextRef = useRef('');
 
   const { firestore } = useFirebase();
-  const faqsQuery = useMemoFirebase(
-    () => query(collection(firestore, 'faqs'), orderBy('order', 'asc')),
-    [firestore]
-  );
-  const { data: allFaqsData, isLoading: loadingFaqs } = useCollection<FAQEntry>(faqsQuery);
 
   /* Filter — reads from ref so the function stays stable */
   const computeFaqs = useCallback((cat: CategoryId, q: string): FAQEntry[] => {
@@ -74,12 +71,27 @@ export default function FAQClient() {
     });
   }, []);
 
-  /* Sync Firestore data → ref + re-apply current filters */
+  /* Fetch FAQs directly — bypasses errorEmitter so a permission/missing-rules
+     error shows an empty list instead of crashing the page. */
   useEffect(() => {
-    if (!allFaqsData) return;
-    allFaqsRef.current = allFaqsData;
-    setDisplayedFaqs(computeFaqs(activeCatRef.current, searchTextRef.current));
-  }, [allFaqsData, computeFaqs]);
+    const q = query(collection(firestore, 'faqs'), orderBy('order', 'asc'));
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        const faqs = snap.docs.map(d => ({ ...d.data(), id: d.id })) as FAQEntry[];
+        allFaqsRef.current = faqs;
+        setAllFaqsData(faqs);
+        setDisplayedFaqs(computeFaqs(activeCatRef.current, searchTextRef.current));
+        setLoadingFaqs(false);
+      },
+      (err) => {
+        console.error('FAQs unavailable:', err.message);
+        setAllFaqsData([]);
+        setLoadingFaqs(false);
+      }
+    );
+    return () => unsub();
+  }, [firestore, computeFaqs]);
 
   /* 3D corridor transition */
   const triggerTransition = useCallback((newCat: CategoryId, newSearch: string) => {
