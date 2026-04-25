@@ -81,6 +81,13 @@ service cloud.firestore {
       allow delete: if isExistingAdmin();
     }
 
+    match /faqs/{faqId} {
+      allow read: if true;
+      allow create: if isAdmin() && matchesPathId(faqId);
+      allow update: if isExistingAdmin() && idIsImmutable();
+      allow delete: if isExistingAdmin();
+    }
+
     match /security_team/{contactId} {
       allow read, write: if isAdmin();
     }

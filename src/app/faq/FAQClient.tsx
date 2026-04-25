@@ -1,18 +1,19 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import FAQItem from '@/components/FAQItem';
 import FAQCategoryNav from '@/components/FAQCategoryNav';
-import { Search, X, Info } from 'lucide-react';
+import { Search, X, Info, Loader2 } from 'lucide-react';
+import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, query, orderBy } from 'firebase/firestore';
 
-/* ── DATA ─────────────────────────────────────────────────────────── */
+/* ── TYPES & CONFIG ───────────────────────────────────────────────── */
 export type FAQCategory = 'venue' | 'hire' | 'access' | 'safety' | 'rules';
 
 export interface FAQEntry {
-  id: number;
+  id: string;
   cat: FAQCategory;
   q: string;
   a: string;
@@ -35,23 +36,6 @@ export const CAT_COLORS: Record<string, string> = {
   rules:  'hsl(133,55%,38%)',
 };
 
-const FAQS: FAQEntry[] = [
-  { id: 1,  cat: 'hire',   q: "How do I contact someone when there's an issue during my hire?",           a: "Please call the number displayed above the notice board labelled 'On-Duty Contact number'." },
-  { id: 2,  cat: 'access', q: 'What is the height of the gate height barrier?',                           a: 'The height barrier is 2m high. If you expect vehicles that will exceed this height, please contact the booking manager or On-Duty contact number.' },
-  { id: 3,  cat: 'hire',   q: 'What do I do with any rubbish generated during my hire?',                  a: 'We ask all hirers to take any rubbish generated during their hire away with them to keep the Hub clean for everyone.' },
-  { id: 4,  cat: 'venue',  q: 'What is the total number of people allowed in the hall?',                  a: 'The maximum capacity for the hall is 110 people.' },
-  { id: 5,  cat: 'rules',  q: "Is there a 'Premises' licence for the Hub?",                               a: 'No, the Hub does not hold a general premises licence.' },
-  { id: 6,  cat: 'rules',  q: 'Are dogs allowed on the premises?',                                        a: 'No dogs are allowed on the premises, with the exception of guide and assistant dogs.' },
-  { id: 7,  cat: 'venue',  q: 'How many tables and chairs are available?',                                a: 'We have 12 tables and approximately 80 chairs available for use in the hall.' },
-  { id: 8,  cat: 'venue',  q: 'Are other tables available if needed?',                                    a: 'Yes, it is possible to hire additional tables from the Playing Field Trust. Please contact your Hub contact for more information.' },
-  { id: 9,  cat: 'safety', q: 'Where is the fire assembly point and who is responsible for evacuations?', a: 'In the event of a fire or the fire alarm sounding, guests should assemble outside on the playing field. It is the hirer\'s responsibility to ensure everyone is safely out and to call the fire brigade.' },
-  { id: 10, cat: 'venue',  q: 'What is the size and floor space of the Hub?',                             a: 'The main hall is 14.8m long × 9m wide. It features a vaulted sloping roof with a maximum height of 4m.' },
-  { id: 11, cat: 'access', q: 'What parking is available?',                                               a: 'There are 18 dedicated parking spaces at the Hub, with additional parking available within the village.' },
-  { id: 12, cat: 'venue',  q: 'What external space is available for use?',                                a: 'We have a front south-facing terrace facing the playing field, directly accessible from the main hall. It measures approximately 23m × 2.5m.' },
-  { id: 13, cat: 'rules',  q: 'Can we have a bouncy castle in the Hall?',                                 a: 'Yes, provided the equipment is for internal use (to avoid floor damage) and has a limited height to avoid the ceiling lights and projector.' },
-  { id: 14, cat: 'rules',  q: 'Can we use stage smoke or dry ice?',                                       a: 'It is not advisable. In certain circumstances, such as warm temperatures, stage smoke can trigger the smoke alarms.' },
-];
-
 type TransitionPhase = 'idle' | 'exiting' | 'entering';
 type CategoryId = 'all' | FAQCategory;
 
@@ -59,26 +43,43 @@ type CategoryId = 'all' | FAQCategory;
    CLIENT COMPONENT
 ══════════════════════════════════════════════════════════════════ */
 export default function FAQClient() {
-  const [activeCategory, setActiveCategory]   = useState<CategoryId>('all');
-  const [search,          setSearch]          = useState('');
-  const [phase,           setPhase]           = useState<TransitionPhase>('idle');
-  const [displayedFaqs,   setDisplayedFaqs]   = useState<FAQEntry[]>(FAQS);
-  const [openId,          setOpenId]          = useState<number | null>(null);
-  const [toast,           setToast]           = useState(false);
-  const [flash,           setFlash]           = useState(false);
+  const [activeCategory,   setActiveCategory]   = useState<CategoryId>('all');
+  const [search,           setSearch]           = useState('');
+  const [phase,            setPhase]            = useState<TransitionPhase>('idle');
+  const [displayedFaqs,    setDisplayedFaqs]    = useState<FAQEntry[]>([]);
+  const [openId,           setOpenId]           = useState<string | null>(null);
+  const [toast,            setToast]            = useState(false);
+  const [flash,            setFlash]            = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
-  const questionsRef = useRef<HTMLDivElement>(null);
-  const pendingRef   = useRef<{ cat: CategoryId; search: string } | null>(null);
+  const questionsRef  = useRef<HTMLDivElement>(null);
+  const pendingRef    = useRef<{ cat: CategoryId; search: string } | null>(null);
+  const allFaqsRef    = useRef<FAQEntry[]>([]);
+  const activeCatRef  = useRef<CategoryId>('all');
+  const searchTextRef = useRef('');
 
-  /* Filter logic */
+  const { firestore } = useFirebase();
+  const faqsQuery = useMemoFirebase(
+    () => query(collection(firestore, 'faqs'), orderBy('order', 'asc')),
+    [firestore]
+  );
+  const { data: allFaqsData, isLoading: loadingFaqs } = useCollection<FAQEntry>(faqsQuery);
+
+  /* Filter — reads from ref so the function stays stable */
   const computeFaqs = useCallback((cat: CategoryId, q: string): FAQEntry[] => {
-    return FAQS.filter(f => {
+    return allFaqsRef.current.filter(f => {
       const matchCat    = cat === 'all' || f.cat === cat;
       const matchSearch = !q || f.q.toLowerCase().includes(q.toLowerCase()) || f.a.toLowerCase().includes(q.toLowerCase());
       return matchCat && matchSearch;
     });
   }, []);
+
+  /* Sync Firestore data → ref + re-apply current filters */
+  useEffect(() => {
+    if (!allFaqsData) return;
+    allFaqsRef.current = allFaqsData;
+    setDisplayedFaqs(computeFaqs(activeCatRef.current, searchTextRef.current));
+  }, [allFaqsData, computeFaqs]);
 
   /* 3D corridor transition */
   const triggerTransition = useCallback((newCat: CategoryId, newSearch: string) => {
@@ -103,6 +104,8 @@ export default function FAQClient() {
 
   /* Category click */
   const handleCatClick = useCallback((catId: CategoryId) => {
+    activeCatRef.current = catId;
+    searchTextRef.current = '';
     setActiveCategory(catId);
     setSearch('');
     triggerTransition(catId, '');
@@ -122,18 +125,19 @@ export default function FAQClient() {
 
   /* Search */
   const handleSearch = useCallback((val: string) => {
+    searchTextRef.current = val;
     setSearch(val);
-    triggerTransition(activeCategory, val);
+    triggerTransition(activeCatRef.current, val);
     if (!val) setSidebarCollapsed(false);
-  }, [activeCategory, triggerTransition]);
+  }, [triggerTransition]);
 
   /* Accordion */
-  const handleToggle = useCallback((id: number) => {
+  const handleToggle = useCallback((id: string) => {
     setOpenId(prev => prev === id ? null : id);
   }, []);
 
   /* Copy deep link */
-  const handleCopy = useCallback((id: number) => {
+  const handleCopy = useCallback((id: string) => {
     const url = `${window.location.origin}${window.location.pathname}#faq-${id}`;
     navigator.clipboard.writeText(url).then(() => {
       setToast(true);
@@ -145,8 +149,8 @@ export default function FAQClient() {
   useEffect(() => {
     const hash = window.location.hash.replace('#', '');
     if (hash.startsWith('faq-')) {
-      const id = parseInt(hash.replace('faq-', ''));
-      setOpenId(id);
+      const idStr = hash.replace('faq-', '');
+      setOpenId(idStr);
       setTimeout(() => {
         const el = document.getElementById(hash);
         if (el) {
@@ -159,10 +163,11 @@ export default function FAQClient() {
 
   /* Counts */
   const counts = useMemo(() => {
-    const c: Record<string, number> = { all: FAQS.length };
-    FAQS.forEach(f => { c[f.cat] = (c[f.cat] || 0) + 1; });
+    const source = allFaqsData ?? [];
+    const c: Record<string, number> = { all: source.length };
+    source.forEach(f => { c[f.cat] = (c[f.cat] || 0) + 1; });
     return c;
-  }, []);
+  }, [allFaqsData]);
 
   /* Active category meta */
   const activeMeta = CATEGORIES.find(c => c.id === activeCategory) ?? CATEGORIES[0];
@@ -261,62 +266,75 @@ export default function FAQClient() {
 
         {/* Questions */}
         <div ref={questionsRef} className="flex-1 min-w-0">
-          <div className={cn('faq-stage', phaseClass)}>
-            <div className="faq-list-inner">
-              {displayedFaqs.length === 0 && search ? (
-                <div className="text-center py-20 bg-card rounded-2xl border border-border">
-                  <p className="text-4xl mb-4 text-border">◈</p>
-                  <p className="font-bold text-lg text-muted-foreground mb-2">
-                    No results for &ldquo;{search}&rdquo;
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Try different keywords, or browse by category.
-                  </p>
-                </div>
-              ) : (
-                grouped.map(group => (
-                  <div
-                    key={group.catId}
-                    id={`cat-${group.catId}`}
-                    className="mb-10 scroll-mt-20"
-                  >
-                    {/* Category heading */}
-                    <div className="flex items-center gap-3 mb-5">
-                      <div
-                        className="w-1 h-7 rounded-full flex-shrink-0"
-                        style={{ background: group.color }}
-                      />
-                      <h2
-                        className="text-xs font-bold uppercase tracking-widest"
-                        style={{ color: group.color }}
-                      >
-                        {group.label}
-                      </h2>
-                      <div className="flex-1 h-px bg-border" />
-                      <span className="text-xs text-muted-foreground font-semibold">
-                        {group.faqs.length} {group.faqs.length === 1 ? 'question' : 'questions'}
-                      </span>
-                    </div>
-
-                    {/* Items */}
-                    <div className="flex flex-col gap-3 faq-items-list">
-                      {group.faqs.map(faq => (
-                        <div key={faq.id} className="faq-item-wrap">
-                          <FAQItem
-                            faq={faq}
-                            isOpen={openId === faq.id}
-                            onToggle={handleToggle}
-                            onCopy={handleCopy}
-                            searchTerm={search}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))
-              )}
+          {loadingFaqs && displayedFaqs.length === 0 ? (
+            <div className="flex items-center justify-center py-24">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
-          </div>
+          ) : (
+            <div className={cn('faq-stage', phaseClass)}>
+              <div className="faq-list-inner">
+                {displayedFaqs.length === 0 && search ? (
+                  <div className="text-center py-20 bg-card rounded-2xl border border-border">
+                    <p className="text-4xl mb-4 text-border">◈</p>
+                    <p className="font-bold text-lg text-muted-foreground mb-2">
+                      No results for &ldquo;{search}&rdquo;
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Try different keywords, or browse by category.
+                    </p>
+                  </div>
+                ) : displayedFaqs.length === 0 ? (
+                  <div className="text-center py-20 bg-card rounded-2xl border border-border">
+                    <p className="text-4xl mb-4 text-border">◈</p>
+                    <p className="font-bold text-lg text-muted-foreground">
+                      No FAQs available yet.
+                    </p>
+                  </div>
+                ) : (
+                  grouped.map(group => (
+                    <div
+                      key={group.catId}
+                      id={`cat-${group.catId}`}
+                      className="mb-10 scroll-mt-20"
+                    >
+                      {/* Category heading */}
+                      <div className="flex items-center gap-3 mb-5">
+                        <div
+                          className="w-1 h-7 rounded-full flex-shrink-0"
+                          style={{ background: group.color }}
+                        />
+                        <h2
+                          className="text-xs font-bold uppercase tracking-widest"
+                          style={{ color: group.color }}
+                        >
+                          {group.label}
+                        </h2>
+                        <div className="flex-1 h-px bg-border" />
+                        <span className="text-xs text-muted-foreground font-semibold">
+                          {group.faqs.length} {group.faqs.length === 1 ? 'question' : 'questions'}
+                        </span>
+                      </div>
+
+                      {/* Items */}
+                      <div className="flex flex-col gap-3 faq-items-list">
+                        {group.faqs.map(faq => (
+                          <div key={faq.id} className="faq-item-wrap">
+                            <FAQItem
+                              faq={faq}
+                              isOpen={openId === faq.id}
+                              onToggle={handleToggle}
+                              onCopy={handleCopy}
+                              searchTerm={search}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
