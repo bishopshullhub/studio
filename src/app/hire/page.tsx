@@ -16,6 +16,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import HireProcessSection from '@/components/HireProcessSection';
 import { useFirebase, setDocumentNonBlocking, initiateAnonymousSignIn } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { sendEnquiryEmailAction } from '@/app/actions/send-email';
@@ -387,6 +388,8 @@ ${submittedData.additionalRequirements}
           </div>
 
         </div>
+
+        <HireProcessSection />
 
         <section id="booking-form" className="scroll-mt-24 max-w-7xl mx-auto">
             {/* Form Container - Reduced Mobile Padding */}
